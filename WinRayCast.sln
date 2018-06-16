@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.27703.2000
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WinRayCast", "WinRayCast.vcxproj", "{8112894F-AD9E-4511-939D-847B8417CF89}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x86 = Debug|x86
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{8112894F-AD9E-4511-939D-847B8417CF89}.Debug|x86.ActiveCfg = Debug|Win32
+		{8112894F-AD9E-4511-939D-847B8417CF89}.Debug|x86.Build.0 = Debug|Win32
+		{8112894F-AD9E-4511-939D-847B8417CF89}.Release|x86.ActiveCfg = Release|Win32
+		{8112894F-AD9E-4511-939D-847B8417CF89}.Release|x86.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {A2C8EBB0-D4AE-4B2F-8DCE-5C23B2AAC180}
+	EndGlobalSection
+EndGlobal
