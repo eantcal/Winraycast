@@ -35,16 +35,10 @@
 #include <ddraw.h>  
 extern LPDIRECTDRAWSURFACE7 g_pDDSBack;
 
-const double PI = (double) 3.141592653589793;
 
 typedef unsigned int cell_t;
 
 class WorldMap;
-
-#define STATIC_VECTOR
-#define MAX_RAYS 4096
-
-#define SKY_PANEL_MASK 0xFF
 
 
 /* -------------------------------------------------------------------------- */
@@ -72,12 +66,12 @@ private:
 
     double m_projCenter;
 
-    double m_cosTbl[MAX_RAYS];
-    double m_sinTbl[MAX_RAYS];
-    double m_tanTbl[MAX_RAYS];
-    double m_invSinTbl[MAX_RAYS];
-    double m_invCosTbl[MAX_RAYS];
-    double m_invTanTbl[MAX_RAYS];
+    std::vector<double> m_cosTbl;
+    std::vector<double> m_sinTbl;
+    std::vector<double> m_tanTbl;
+    std::vector<double> m_invSinTbl;
+    std::vector<double> m_invCosTbl;
+    std::vector<double> m_invTanTbl;
 
     double m_x, m_y;
 
@@ -112,27 +106,27 @@ public:
         return m_degVisual2; 
     }
 
-    double tan(int ray) noexcept { 
+    const double& tan(int ray) const noexcept { 
         return m_tanTbl[ray]; 
     }
 
-    double cos(int ray) noexcept { 
+    const double& cos(int ray) const noexcept { 
         return m_cosTbl[ray]; 
     }
 
-    double sin(int ray) noexcept { 
+    const double& sin(int ray) const noexcept { 
         return m_sinTbl[ray]; 
     }
 
-    double invsin(int ray) noexcept { 
+    const double& invsin(int ray) const noexcept { 
         return m_invSinTbl[ray]; 
     }
 
-    double invcos(int ray) noexcept { 
+    const double& invcos(int ray) const noexcept { 
         return m_invCosTbl[ray]; 
     }
 
-    double invtan(int ray) noexcept { 
+    const double& invtan(int ray) const noexcept { 
         return m_invTanTbl[ray]; 
     }
 
@@ -281,15 +275,15 @@ private:
     matrix_t m_map;
     Camera m_camera;
 
-    uint32_t m_cellDx = 256;
-    uint32_t m_cellDy = 256;
+    int m_cellDx = 256;
+    int m_cellDy = 256;
 
     int m_maxX = 0;
     int m_maxY = 0;
 
     fpoint_t m_cameraCellPos{0,0};
 
-    HBITMAP m_bmp[SKY_PANEL_MASK + 1];
+    HBITMAP m_bmp[256] = { 0 };
 
 public:
     WorldMap() = default;
@@ -302,12 +296,12 @@ public:
         return m_cameraCellPos; 
     }
 
-    uint32_t getRowCount() const noexcept { 
-        return m_map.size(); 
+    int getRowCount() const noexcept { 
+        return int(m_map.size()); 
     }
 
-    uint32_t getColCount() const noexcept { 
-        return m_map.empty() ? 0 : m_map[0].size(); 
+    int getColCount() const noexcept { 
+        return int(m_map.empty() ? 0 : m_map[0].size()); 
     }
 
     uint32_t getCellDx() const noexcept { 
@@ -342,7 +336,7 @@ public:
     }
 
     void applyTextureToPanel(int panelKey, HBITMAP hBitmap) noexcept {
-        m_bmp[panelKey & SKY_PANEL_MASK] = hBitmap;
+        m_bmp[panelKey & 0xff] = hBitmap;
     }
 
     int getMaxX() const noexcept { 
@@ -353,7 +347,7 @@ public:
         return m_maxY; 
     }
 
-    void set(uint32_t row, uint32_t col, cell_t cellVal) {
+    void set(int row, int col, cell_t cellVal) {
         if (col < getColCount() && row < getRowCount())
             m_map[row][col] = cellVal;
     }
@@ -507,7 +501,7 @@ private:
 
 private:
     double m_scale = 0;
-    double m_depthShadingPar = 200.0;
+    double m_depthShadingPar = 100.0;
     double m_ceilFloorShadingPar = 0;
 
     int m_fps = 0;

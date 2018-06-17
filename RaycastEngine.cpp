@@ -80,15 +80,15 @@ void DDrawPixel32(BYTE* surface, unsigned int x, unsigned int y, DWORD color_val
 /* -------------------------------------------------------------------------- */
 
 TextureBuffer* getTextureMap(HDC hdc, HBITMAP hBitmap, int width, int height) {
-    static std::map<int, TextureBuffer*> TextureImageCollection;
+    static std::map<HBITMAP, TextureBuffer*> TextureImageCollection;
 
     TextureBuffer* textureBuf;
-
-    std::map<int, TextureBuffer*>::iterator i = TextureImageCollection.find(int(hBitmap));
+     
+    auto i = TextureImageCollection.find(hBitmap);
 
     if (i == TextureImageCollection.end()) {
         textureBuf = new TextureBuffer(hdc, hBitmap, width, height);
-        TextureImageCollection.insert({ int(hBitmap), textureBuf });
+        TextureImageCollection.insert({ hBitmap, textureBuf });
     }
     else {
         textureBuf = i->second;
@@ -1105,8 +1105,15 @@ Camera::Camera(
     m_deg270 = (vecSize / 4) * 3;
     m_deg360 = vecSize - 1;
 
+    m_cosTbl.resize(vecSize);
+    m_sinTbl.resize(vecSize);
+    m_tanTbl.resize(vecSize);
+    m_invSinTbl.resize(vecSize);
+    m_invCosTbl.resize(vecSize);
+    m_invTanTbl.resize(vecSize);
+
     for (int ray = 0; ray < vecSize; ++ray) {
-        const double alpha = (double(ray*360.0) / double(m_deg360))*(PI / 180.0);
+        const double alpha = (double(ray*360.0) / double(m_deg360))*(3.14159265359 / 180.0);
 
         m_cosTbl[ray] = ::cos(alpha);
         m_sinTbl[ray] = ::sin(alpha);
