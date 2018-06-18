@@ -480,10 +480,10 @@ renderTranspWall(int videoPosX,
         horzint1st(wMap, relRay, M1, ph);
         vertint1st(wMap, relRay, M, pv);
 
-        int hCellVal = 0;
-        int vCellVal = 0;
+        cell_t hCellVal = 0;
+        cell_t vCellVal = 0;
 
-        int mapKey = 0;
+        cell_t mapKey = 0;
 
         bool v_not_found = false;
         bool h_not_found = false;
@@ -548,8 +548,8 @@ renderTranspWall(int videoPosX,
             continue;
         }
 
-        int wallKey = (mapKey & 0xFF000000) >> 24;
-        int wallHeight = (mapKey & 0x00FFFF00) >> 8;
+        const cell_t wallKey = (mapKey & 0xFF000000) >> 24;
+        const cell_t wallHeight = (mapKey & 0xff00000000UL) >> 32;
 
         if (!wallKey) {
             continue;
@@ -595,15 +595,13 @@ renderTranspWall(int videoPosX,
             if (currentCellRay >= 0 && currentCellRay < cellBound) {
                 int x_coord_source = currentCellRay;
 
-                HBITMAP current_bmp = wMap.getBmp(wallKey);
-
                 double shadingAttr = double(k) / double(m_depthShadingPar);
 
                 if (wallHeight &&
                     (wMap[cameraYPos / wMap.getCellDy()]
                         [cameraXPos / wMap.getCellDx()] & 0xff00) == 0xff00)
                 {
-                    shadingStretchBtl(
+                    transpShadingStretchBtl(
                         videoHdc,
                         ray,
                         ((m_camera.getSlope() + m_camera.getYProjRes()) >> 1) - centerProj - k,
@@ -614,7 +612,8 @@ renderTranspWall(int videoPosX,
                         wMap.getCellDx(), //width (do not invert it)
                         m_camera.getYProjRes(),
                         shadingAttr,
-                        wMap.getBmp(1)
+                        wMap.getBmp(wallHeight & 0xff),
+                        TRANSP_COLOR
                     );
                 }
 
@@ -629,7 +628,7 @@ renderTranspWall(int videoPosX,
                     wMap.getCellDx(), //width (do not invert it)
                     m_camera.getYProjRes(),
                     shadingAttr,
-                    current_bmp,
+                    wMap.getBmp(wallKey & 0xff),
                     TRANSP_COLOR
                 );
             } // if current_cell...
@@ -700,10 +699,10 @@ renderScene(int videoPosX, int videoPosY,
         horzint1st(wMap, relRay, M1, ph);
         vertint1st(wMap, relRay, M, pv);
 
-        int hCellVal = 0;
-        int vCellVal = 0;
+        cell_t hCellVal = 0;
+        cell_t vCellVal = 0;
 
-        int mapKey = 0;
+        cell_t mapKey = 0;
 
         //while you don't cross a wall limit, search for next intersection
         while (vCellVal = vertWall(wMap, pv, relRay), (vCellVal & 0xff) == 0) {
@@ -736,7 +735,7 @@ renderScene(int videoPosX, int videoPosY,
         }
 
         const int wallKey = mapKey & 0xff;
-        const int wallHeight = (mapKey & 0x00ffff00) >> 8;
+        const int wallHeight = (mapKey & 0xff00000000UL) >> 32;
 
         //Compute the view distort LTU
         int distortDeg = ray - m_camera.degHalfVisual();
@@ -780,13 +779,13 @@ renderScene(int videoPosX, int videoPosY,
                 const int cellDx = wMap.getCellDx();
                 const int cellDy = wMap.getCellDy();
 
-                int ceilKey = 0;
+                cell_t ceilKey = 0;
 
                 const int row = yPicture / cellDy;
                 const int col = xPicture / cellDx;
 
                 if (row<int(wMap.getRowCount()) && col<int(wMap.getColCount()) && col >= 0 && row >= 0) {
-                    const int mapKey = wMap[row][col];
+                    const cell_t mapKey = wMap[row][col];
                     
                     if (mapKey & 0xff) 
                         continue;
@@ -802,7 +801,7 @@ renderScene(int videoPosX, int videoPosY,
                 }
 
                 const auto textureBuf = 
-                    getTextureMap(videoHdc, wMap.getBmp(ceilKey), cellDx, cellDy);
+                    getTextureMap(videoHdc, wMap.getBmp(ceilKey & 0xff), cellDx, cellDy);
 
                 const double shadingAttr = m_ceilFloorShadingPar / double(distToPtOnCeiling);
 
@@ -844,7 +843,7 @@ renderScene(int videoPosX, int videoPosY,
                 const int col = xPicture / cellDx;
 
                 if ((row<int(wMap.getRowCount())) && col<int(wMap.getColCount()) && row >= 0 && col >= 0) {
-                    const int mapKey = wMap[row][col];
+                    const cell_t mapKey = wMap[row][col];
                     if (mapKey & 0xff) continue;
                     floorKey = (mapKey & 0x00ff0000) >> 16;
                 }
@@ -936,7 +935,7 @@ renderScene(int videoPosX, int videoPosY,
                         const int col = xPicture / cellDx;
 
                         if (row<int(wMap.getRowCount()) && col<int(wMap.getColCount()) && col >= 0 && row >= 0) {
-                            int mapKey = wMap[row][col];
+                            cell_t mapKey = wMap[row][col];
                             if (mapKey & 0xff) continue;
                             ceilKey = (mapKey >> 8) & 0xff;
                         }
@@ -1031,9 +1030,9 @@ renderScene(int videoPosX, int videoPosY,
 // CAMERA
 /* -------------------------------------------------------------------------- */
 
-int Camera::_move(int offset, WorldMap& wMap, int deg)
+cell_t Camera::moveTo(int offset, WorldMap& wMap, int deg)
 {
-    int retVal = 0;
+    cell_t retVal = 0;
 
     try {
         int alpha = m_alpha + degHalfVisual() + deg;
@@ -1048,8 +1047,8 @@ int Camera::_move(int offset, WorldMap& wMap, int deg)
         double x = double(offset)*m_cosTbl[alpha];
         double y = double(offset)*m_sinTbl[alpha];
 
-        const unsigned int c = (unsigned int)(m_x + x) / wMap.getCellDx();
-        const unsigned int r = (unsigned int)(m_y + y) / wMap.getCellDy();
+        const int c = (int)(m_x + x) / wMap.getCellDx();
+        const int r = (int)(m_y + y) / wMap.getCellDy();
 
         if (r >= wMap.getRowCount() || c >= wMap.getColCount()) {
             return retVal;

@@ -36,7 +36,7 @@
 extern LPDIRECTDRAWSURFACE7 g_pDDSBack;
 
 
-typedef unsigned int cell_t;
+using cell_t=uint64_t;
 
 class WorldMap;
 
@@ -151,13 +151,11 @@ public:
         m_y = position.second;
     }
 
-    int Camera::move(int offset, WorldMap& wMap) {
-        return _move(offset, wMap);
+    cell_t Camera::moveToH(int offset, WorldMap& wMap) {
+        return moveTo(offset, wMap, -m_deg90);
     }
 
-    int Camera::hmove(int offset, WorldMap& wMap) {
-        return _move(offset, wMap, -m_deg90);
-    }
+    cell_t moveTo(int offset, WorldMap& wMap, int deg = 0);
 
     int getAlpha() const noexcept { 
         return m_alpha; 
@@ -204,7 +202,7 @@ public:
     }
 
 private:
-    int _move(int offset, WorldMap& wMap, int deg = 0);
+    
 };
 
 

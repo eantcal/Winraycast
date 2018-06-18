@@ -107,7 +107,7 @@ static void Render3DEnvironment();
 
 static bool g_FullScreenModeActive = false;
 static BOOL g_bActive = FALSE;   // Is application active?
-static int  g_current_cell_of_player = 0;
+static cell_t  g_current_cell_of_player = 0;
 
 WorldMap*      theWorldMap = 0;
 RaycastEngine* the3DEngine = 0;
@@ -154,26 +154,26 @@ void Setup3DEngine(RaycastEngine** the3DEngine, WorldMap** theWorldMap)
     );
 
     // Floor/Ceil/Wall MAP
-    unsigned int array_map[map_rows][map_cols] = {
-        0x00000004,0x00000004,0x00000004,0x00000004,0x00000004,0x00000004,0x00000004,0x00000004,
-        0x00000006,0x00010500,0x00010500,0x00010500,0x00010500,0x00010500,0x00010500,0x00000004,
-        0x00000006,0x00010500,0x00010500,0x00010500,0x00010500,0x00010500,0x00010500,0x00000004,
-        0x00000006,0x00010500,0x00010500,0x00010500,0x00010500,0x00010500,0x00010500,0x00000004,
-        0x00000006,0x00010500,0x00010500,0x00010500,0x00010500,0x00010500,0x00010500,0x00000004,
-        0x00000006,0x00010500,0x00010500,0x00010500,0x00010500,0x00010500,0x00010500,0x00000004,
-        0x00000006,0x00010500,0x00010500,0x00010500,0x00010500,0x00010500,0x00010500,0x00000004,
-        0x00000006,0x00000006,0x00000006,0x00010500,0x00000004,0x00000004,0x00000004,0x00000004,
-        0x00000606,0x00000606,0x00000606,0x03010600,0x00000606,0x00000606,0x00000606,0x00000606,
-        0x00000202,0x0001ff00,0x0001ff00,0x0001ff00,0x0001ff00,0x0001ff00,0x0001ff00,0x00000006,
-        0x00000202,0x0001ff00,0x0001ff00,0x0001ff00,0x0001ff00,0x0001ff00,0x0001ff00,0x00000006,
-        0x00000202,0x0001ff00,0x00010707,0x0001ff00,0x00010707,0x0001ff00,0x0001ff00,0x00000006,
-        0x00000202,0x0001ff00,0x0001ff00,0x0001ff00,0x00010707,0x0001ff00,0x0001ff00,0x00000006,
-        0x00000202,0x0001ff00,0x0001ff00,0x00010707,0x0001ff00,0x0001ff00,0x0001ff00,0x00000006,
-        0x00000202,0x0001ff00,0x0001ff00,0x0001ff00,0x0001ff00,0x0001ff00,0x0001ff00,0x00000006,
-        0x00000202,0x00000202,0x00000202,0x00000202,0x00000202,0x00000202,0x00000202,0x00000202,
+    cell_t array_map[map_rows][map_cols] = {
+        0x0000000004UL,0x0000000004UL,0x0000000004UL,0x0000000004UL,0x0000000004UL,0x0000000004UL,0x0000000004UL,0x0000000004UL,
+        0x0000000006UL,0x0000010500UL,0x0000010500UL,0x0000010500UL,0x0000010500UL,0x0000010500UL,0x0000010500UL,0x0000000004UL,
+        0x0000000006UL,0x0000010500UL,0x0000010500UL,0x0000010500UL,0x0000010500UL,0x0000010500UL,0x0000010500UL,0x0000000004UL,
+        0x0000000006UL,0x0000010500UL,0x0000010500UL,0x0000010500UL,0x0000010500UL,0x0000010500UL,0x0000010500UL,0x0000000004UL,
+        0x0000000006UL,0x0000010500UL,0x0000010500UL,0x0000010500UL,0x0000010500UL,0x0000010500UL,0x0000010500UL,0x0000000004UL,
+        0x0000000006UL,0x0000010500UL,0x0000010500UL,0x0000010500UL,0x0000010500UL,0x0000010500UL,0x0000010500UL,0x0000000004UL,
+        0x0000000006UL,0x0000010500UL,0x0000010500UL,0x0000010500UL,0x0000010500UL,0x0000010500UL,0x0000010500UL,0x0000000004UL,
+        0x0000000006UL,0x0000000006UL,0x0000000006UL,0x0000010500UL,0x0000000004UL,0x0000000004UL,0x0000000004UL,0x0000000004UL,
+        0x0600000006UL,0x0600000006UL,0x0600000006UL,0x0303010600UL,0x0600000006UL,0x0600000006UL,0x0600000006UL,0x0600000006UL,
+        0x0200000002UL,0x000001ff00UL,0x000001ff00UL,0x000001ff00UL,0x000001ff00UL,0x000001ff00UL,0x070001ff07UL,0x0000000006UL,
+        0x0200000002UL,0x000001ff00UL,0x000001ff00UL,0x000001ff00UL,0x000001ff00UL,0x000001ff00UL,0x000001ff00UL,0x0000000006UL,
+        0x0200000002UL,0x000001ff00UL,0x000001ff00UL,0x050001ff07UL,0x000001ff00UL,0x000001ff00UL,0x000001ff00UL,0x0000000006UL,
+        0x0200000002UL,0x000001ff00UL,0x000001ff00UL,0x050001ff07UL,0x000001ff00UL,0x000001ff00UL,0x000001ff00UL,0x0000000006UL,
+        0x0200000002UL,0x000001ff00UL,0x000001ff00UL,0x000001ff00UL,0x000001ff00UL,0x000001ff00UL,0x000001ff00UL,0x0000000006UL,
+        0x0200000002UL,0x000001ff00UL,0x000001ff00UL,0x000001ff00UL,0x000001ff00UL,0x000001ff00UL,0x000001ff00UL,0x0000000006UL,
+        0x0200000002UL,0x0200000002UL,0x0200000002UL,0x0200000002UL,0x0200000002UL,0x0200000002UL,0x0200000002UL,0x0000000002UL,
     };
 
-    (*theWorldMap)->loadMapInfo((const unsigned int*)array_map, map_rows, map_cols);
+    (*theWorldMap)->loadMapInfo((const cell_t*)array_map, map_rows, map_cols);
     (*theWorldMap)->resizeCell(CELL_SIZE, CELL_SIZE);
 
     *the3DEngine = new RaycastEngine(aCamera, SCALE);
@@ -242,8 +242,8 @@ int APIENTRY WinMain(HINSTANCE hInstance,
         { 0x03, "03" },
         { 0x04, "04" },
         { 0x05, "05" },
-    { 0x06, "06" },
-    { 0x07, "07" },
+        { 0x06, "06" },
+        { 0x07, "07" },
     };
 
     const int cellTxtTable_item_count = sizeof(cellTxtTable) / sizeof(cellTextureId_bmpName_t);
@@ -331,11 +331,11 @@ void MovePlayer()
         speedFact = 2;
         if (GetAsyncKeyState(VK_LEFT)) {
             g_current_cell_of_player =
-                the3DEngine->camera().hmove(KEYBSTEP, *theWorldMap);
+                the3DEngine->camera().moveToH(KEYBSTEP, *theWorldMap);
         }
         else if (GetAsyncKeyState(VK_RIGHT)) {
             g_current_cell_of_player =
-                the3DEngine->camera().hmove(-KEYBSTEP, *theWorldMap);
+                the3DEngine->camera().moveToH(-KEYBSTEP, *theWorldMap);
         }
     }
     else {
@@ -351,13 +351,13 @@ void MovePlayer()
 
     if (GetAsyncKeyState(VK_UP)) {
         g_current_cell_of_player =
-            the3DEngine->camera().move(KEYBSTEP*speedFact, *theWorldMap);
+            the3DEngine->camera().moveTo(KEYBSTEP*speedFact, *theWorldMap);
 
         move_up_down = true;
     }
     else if (GetAsyncKeyState(VK_DOWN)) {
         g_current_cell_of_player =
-            the3DEngine->camera().move(-KEYBSTEP * speedFact, *theWorldMap);
+            the3DEngine->camera().moveTo(-KEYBSTEP * speedFact, *theWorldMap);
 
         move_up_down = true;
     }
@@ -490,7 +490,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 }
             }
 
-            int floor_type = g_current_cell_of_player >> 16;
+            cell_t floor_type = g_current_cell_of_player >> 16;
             if (floor_type <= 0xB6 && floor_type >= 0xB1) {
                 the3DEngine->camera().setCenterProj((double)0.90);
             }
