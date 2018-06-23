@@ -8,4 +8,5 @@ Screnn shot examples
 
 ![Screen Shot](http://www.eantcal.eu/home/articles-and-publications/technical-articles/ray-casting-engine-3d-e-videogame/ScreenShot1.png)
 
-[![Video](https://youtu.be/JTL8VTjinJ4)]]
+More information at
+![Article on raycast](http://www.eantcal.eu/home/articles-and-publications/technical-articles/ray-casting-engine-3d-e-videogame)
