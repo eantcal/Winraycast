@@ -32,10 +32,6 @@
 
 /* -------------------------------------------------------------------------- */
 
-#include <ddraw.h>  
-extern LPDIRECTDRAWSURFACE7 g_pDDSBack;
-
-
 using cell_t=uint64_t;
 
 class WorldMap;
@@ -366,9 +362,7 @@ public:
     }
 
     ~RaycastEngine() {
-        if (!g_pDDSBack) {
-            delete[] m_videoBuf;
-        }
+        delete[] m_videoBuf;
     }
 
     void setShadingBrighter() noexcept {
@@ -416,6 +410,14 @@ public:
     }
 
 private:
+
+     void DDrawPixel32(BYTE* surface, unsigned int x, unsigned int y, DWORD color_value) {
+        if (y < m_renderAreaHeight && x < m_renderAreaWidth) {
+            *((DWORD*)(surface + (x << 2) + (y*m_renderPitch))) = color_value;
+        }
+    }
+
+
     void renderTranspWall(int videoPosX,
         int videoPosY,
         HDC videoHdc,
@@ -501,6 +503,10 @@ private:
     double m_scale = 0;
     double m_depthShadingPar = 100.0;
     double m_ceilFloorShadingPar = 0;
+
+    DWORD m_renderAreaHeight = 0;
+    DWORD m_renderAreaWidth = 0;
+    DWORD m_renderPitch = 0;
 
     int m_fps = 0;
 };

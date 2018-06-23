@@ -21,60 +21,14 @@
 /* -------------------------------------------------------------------------- */
 
 #include "RaycastEngine.h"
+#include "DdxDevice.h"
+
 
 /* -------------------------------------------------------------------------- */
 // RAYCAST ENGINE
 /* -------------------------------------------------------------------------- */
 
 #define TRANSP_COLOR RGB(0,0,0)
-
-#include <ddraw.h>
-extern LPDIRECTDRAW7          g_pDD;        // DirectDraw object
-extern LPDIRECTDRAWSURFACE7   g_pDDSPrimary;// DirectDraw primary surface
-extern LPDIRECTDRAWSURFACE7   g_pDDSBack;   // DirectDraw back surface
-extern BOOL                   g_bActive;    // Is application active?
-
-
-/* -------------------------------------------------------------------------- */
-
-static
-DDSURFACEDESC2  DDSurfaceDesc2;
-
-
-/* -------------------------------------------------------------------------- */
-
-BYTE* LockSurfaceAndGetAddr(IDirectDrawSurface7* surface)
-{
-    memset(&DDSurfaceDesc2, 0, sizeof(DDSURFACEDESC2));
-    DDSurfaceDesc2.dwSize = sizeof(DDSURFACEDESC2);
-
-    if (SUCCEEDED(
-        surface->Lock(NULL, &DDSurfaceDesc2, DDLOCK_NOSYSLOCK | DDLOCK_WAIT, NULL))
-        )
-    {
-        return (BYTE*)DDSurfaceDesc2.lpSurface;
-    }
-
-    return 0;
-}
-
-
-/* -------------------------------------------------------------------------- */
-
-inline
-void UnlockSurface(IDirectDrawSurface7* surface) {
-    surface->Unlock(NULL);
-}
-
-
-/* -------------------------------------------------------------------------- */
-
-inline
-void DDrawPixel32(BYTE* surface, unsigned int x, unsigned int y, DWORD color_value) {
-    if (y < DDSurfaceDesc2.dwHeight && x < DDSurfaceDesc2.dwWidth) {
-        *((DWORD*)(surface + (x << 2) + (y*DDSurfaceDesc2.lPitch))) = color_value;
-    }
-}
 
 
 /* -------------------------------------------------------------------------- */
@@ -455,7 +409,11 @@ renderTranspWall(int videoPosX,
     const RECT& rt,
     bool render_internal_wall)
 {
-    if (!g_pDDSPrimary) return;
+    //if (!g_pDDSPrimary) return;
+
+    if (!DdxDevice::getInstance().ready()) {
+        return;
+    }
 
     double d = -1.0; // distance from intersection
 
@@ -648,19 +606,27 @@ renderScene(int videoPosX, int videoPosY,
     WorldMap& wMap,
     const RECT& rt)
 {
-    if (!g_pDDSPrimary) {
+    //if (!g_pDDSPrimary) {
+    //    return;
+   // }
+
+    if (!DdxDevice::getInstance().ready()) {
         return;
     }
 
     int videoBufSize = rt.right * rt.bottom * 4;
 
     if (!m_videoBuf) {
-        LockSurfaceAndGetAddr(g_pDDSPrimary);
-        UnlockSurface(g_pDDSPrimary);
+        //LockSurfaceAndGetAddr(g_pDDSPrimary);
+        //UnlockSurface(g_pDDSPrimary);
 
-        DDSurfaceDesc2.lPitch = rt.right * 4;
-        DDSurfaceDesc2.dwWidth = rt.right;
-        DDSurfaceDesc2.dwHeight = rt.bottom;
+        //DDSurfaceDesc2.lPitch = rt.right * 4;
+       // DDSurfaceDesc2.dwWidth = rt.right;
+       // DDSurfaceDesc2.dwHeight = rt.bottom;
+
+        m_renderPitch = rt.right * 4;
+        m_renderAreaHeight = rt.bottom;
+        m_renderAreaWidth = rt.right;
 
         m_videoBuf = new BYTE[videoBufSize];
     }
@@ -987,10 +953,12 @@ renderScene(int videoPosX, int videoPosY,
     renderTranspWall(videoPosX, videoPosY, videoHdc, wMap, rt, true);  //internal
     renderTranspWall(videoPosX, videoPosY, videoHdc, wMap, rt, false); //external
 
-    HDC dxHdc;
+    DdxDevice::Ctx dctx(DdxDevice::getInstance());
 
-    if ((g_pDDSPrimary)->GetDC(&dxHdc) == DD_OK) {
+    HDC dxHdc = dctx.getDc();
 
+  //  if ((g_pDDSPrimary)->GetDC(&dxHdc) == DD_OK) {
+    if (dxHdc) {
         BITMAPINFO BmpInfo;
 
         memset((void*)&BmpInfo, 0, sizeof(BITMAPINFOHEADER));
@@ -1019,7 +987,7 @@ renderScene(int videoPosX, int videoPosY,
             DIB_RGB_COLORS,                 // usage options
             SRCCOPY                         // raster operation code
         );
-        g_pDDSPrimary->ReleaseDC(dxHdc);
+        //g_pDDSPrimary->ReleaseDC(dxHdc);
     }
 
     ++m_fps;

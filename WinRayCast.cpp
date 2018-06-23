@@ -23,10 +23,7 @@
 #define _CRT_SECURE_NO_DEPRECATE
 
 #include <windows.h>
-
-#include <ddraw.h>
-#pragma comment(lib, "ddraw.lib")
-#pragma comment(lib, "dxguid.lib")
+#include "DdxDevice.h"
 
 #include <string>
 
@@ -38,16 +35,9 @@ using namespace std;
 
 /* -------------------------------------------------------------------------- */
 
-LPDIRECTDRAW7        g_pDD = NULL;        // DirectDraw object
-LPDIRECTDRAWSURFACE7 g_pDDSPrimary = NULL;// DirectDraw primary surface
-LPDIRECTDRAWSURFACE7 g_pDDSBack = NULL;   // DirectDraw back surface
-LPDIRECTDRAWCLIPPER  g_pClipper = NULL;   // Clipper for primary
+static void DbgTrace(HWND hWnd, LPCTSTR szError, ...);
+static HRESULT InitInstance(HINSTANCE hInstance, int nCmdShow);
 
-/* -------------------------------------------------------------------------- */
-
-static HRESULT DbgTrace(HWND hWnd, HRESULT hRet, LPCTSTR szError, ...);
-static HRESULT InitInstanceDD7(HINSTANCE hInstance, int nCmdShow);
-static void ReleaseAllObjects(void);
 
 /* -------------------------------------------------------------------------- */
 
@@ -217,7 +207,7 @@ int APIENTRY WinMain(HINSTANCE hInstance,
             "Video Mode",
             MB_ICONQUESTION | MB_YESNO);
 #endif
-    if (InitInstanceDD7(hInstance, nCmdShow) != DD_OK) {
+    if (InitInstance(hInstance, nCmdShow) != S_OK) {
         return FALSE;
     }
 
@@ -564,7 +554,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         //delete theJoystick;
         delete theWorldMap;
         delete the3DEngine;
-        ReleaseAllObjects();
+        DdxDevice::getInstance().releaseObjects();
+        //ReleaseAllObjects();
         PostQuitMessage(0);
         break;
 
@@ -595,7 +586,7 @@ LRESULT CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 
 
 /* -------------------------------------------------------------------------- */
-
+#if 0
 static void ReleaseAllObjects(void) 
 {
     if (!g_pDD)
@@ -609,38 +600,34 @@ static void ReleaseAllObjects(void)
     g_pDD->Release();
     g_pDD = nullptr;
 }
-
+#endif
 
 /* -------------------------------------------------------------------------- */
 
-static HRESULT DbgTrace(HWND hWnd, HRESULT hRet, LPCTSTR szError, ...) 
+static void DbgTrace(HWND hWnd, LPCTSTR szError, ...) 
 {
     char szBuff[256];
     va_list vl;
 
     va_start(vl, szError);
     vsprintf(szBuff, szError, vl);
-    ReleaseAllObjects();
+    //ReleaseAllObjects();
+
+    DdxDevice::getInstance().releaseObjects();
     MessageBox(hWnd, szBuff, g_szAppTitle, MB_OK);
     DestroyWindow(hWnd);
     va_end(vl);
-    return hRet;
 }
 
 
 /* -------------------------------------------------------------------------- */
 
-static HRESULT InitInstanceDD7(HINSTANCE hInstance, int nCmdShow)
+static HRESULT InitInstance(HINSTANCE hInstance, int nCmdShow)
 {
-    HWND           hWnd;
-    DDSURFACEDESC2 ddsd;
-    //DDSCAPS2     ddscaps;
-    HRESULT        hRet;
-
     WRCstRegisterClass(hInstance);
 
     // Create a window
-    hWnd = CreateWindowEx(
+    HWND hWnd = CreateWindowEx(
         WS_EX_TOPMOST,
         g_szAppWinClass,
         g_szAppTitle,
@@ -664,48 +651,15 @@ static HRESULT InitInstanceDD7(HINSTANCE hInstance, int nCmdShow)
     SetFocus(hWnd);
     if (g_FullScreenModeActive) ShowCursor(FALSE);
 
-    // Create the main DirectDraw object
-    hRet = DirectDrawCreateEx(NULL, (VOID**)&g_pDD, IID_IDirectDraw7, NULL);
-    if (hRet != DD_OK)
-        return DbgTrace(hWnd, hRet, "DirectDrawCreateEx FAILED");
+    auto err = DdxDevice::getInstance().init(hWnd, g_FullScreenModeActive, X_RES, Y_RES );
 
-    // Get normal mode
-    hRet = g_pDD->SetCooperativeLevel(hWnd,
-        g_FullScreenModeActive ? DDSCL_EXCLUSIVE | DDSCL_FULLSCREEN : DDSCL_NORMAL);
-
-    if (hRet != DD_OK)
-        return DbgTrace(hWnd, hRet, "SetCooperativeLevel FAILED");
-
-    if (g_FullScreenModeActive) {
-        hRet = g_pDD->SetDisplayMode(X_RES, Y_RES, 32 /* bits per color */, 0, 0);
-        if (hRet != DD_OK)
-            return DbgTrace(hWnd, hRet, "SetDisplayMode FAILED");
-
-        // Create the primary surface with 1 back buffer
-        ZeroMemory(&ddsd, sizeof(ddsd));
-        ddsd.dwSize = sizeof(ddsd);
-        ddsd.dwFlags = DDSD_CAPS | DDSD_BACKBUFFERCOUNT;
-        ddsd.ddsCaps.dwCaps = DDSCAPS_PRIMARYSURFACE | DDSCAPS_FLIP | DDSCAPS_COMPLEX;
-        ddsd.dwBackBufferCount = 1;
-        hRet = g_pDD->CreateSurface(&ddsd, &g_pDDSPrimary, NULL);
-        
-        if (hRet != DD_OK) {
-            return DbgTrace(hWnd, hRet, "CreateSurface FAILED");
-        }
+    if (err != DdxDevice::error_t::Success) {
+        DbgTrace(hWnd, "DdxDevice initialization failed");
+        DdxDevice::getInstance().releaseObjects();
+        DestroyWindow(hWnd);
     }
-    else {
-        // Create the primary surface
-        ZeroMemory(&ddsd, sizeof(ddsd));
-        ddsd.dwSize = sizeof(ddsd);
-        ddsd.dwFlags = DDSD_CAPS;
-        ddsd.ddsCaps.dwCaps = DDSCAPS_PRIMARYSURFACE;
-        hRet = g_pDD->CreateSurface(&ddsd, &g_pDDSPrimary, NULL);
-        if (hRet != DD_OK)
-            return DbgTrace(hWnd, hRet, "CreateSurface FAILED");
 
-    }
     g_hWnd = hWnd;
-
-    return DD_OK;
+    return S_OK;
 }
 

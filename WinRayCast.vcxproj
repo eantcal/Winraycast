@@ -247,6 +247,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
       </PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="DdxDevice.cpp" />
     <ClCompile Include="WinRayCast.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
       </PrecompiledHeader>
@@ -258,6 +259,7 @@
     <ResourceCompile Include="WinRayCast.rc" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="DdxDevice.h" />
     <ClInclude Include="RaycastEngine.h" />
     <ClInclude Include="resource.h" />
   </ItemGroup>
