@@ -646,7 +646,7 @@ renderScene(int videoPosX, int videoPosY,
 
     const int org_x_res = m_camera.getXProjRes();
 
-    textureBuf->fillBuffer(m_videoBuf, cameraRayOffset + m_fps, org_x_res);
+    textureBuf->fillBuffer(m_videoBuf, cameraRayOffset /*+ m_fps/30*/, org_x_res);
 
     // main casting loop (for each pixel of projection x coord...)
     for (int ray = 0; ray < org_x_res; ++ray) {
