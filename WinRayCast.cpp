@@ -137,7 +137,7 @@ void Setup3DEngine(RaycastEngine** the3DEngine, WorldMap** theWorldMap)
 
     *theWorldMap = new WorldMap();
 
-    Camera aCamera = Camera(0, 0, VISUAL_DEGREE, PROJ_X_RES, PROJ_Y_RES);
+    Player aCamera = Player(0, 0, VISUAL_DEGREE, PROJ_X_RES, PROJ_Y_RES);
     aCamera.setPos(
         make_pair<int, int>(CELL_SIZE * CAMERA_CEL_COL_POS,
             CELL_SIZE * CAMERA_CEL_ROW_POS)

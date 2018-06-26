@@ -33,15 +33,15 @@
 
 /* -------------------------------------------------------------------------- */
 
-TextureBuffer* getTextureMap(HDC hdc, HBITMAP hBitmap, int width, int height) {
-    static std::map<HBITMAP, TextureBuffer*> TextureImageCollection;
+BitmapBuffer* getTextureMap(HDC hdc, HBITMAP hBitmap, int width, int height) {
+    static std::map<HBITMAP, BitmapBuffer*> TextureImageCollection;
 
-    TextureBuffer* textureBuf;
+    BitmapBuffer* textureBuf;
      
     auto i = TextureImageCollection.find(hBitmap);
 
     if (i == TextureImageCollection.end()) {
-        textureBuf = new TextureBuffer(hdc, hBitmap, width, height);
+        textureBuf = new BitmapBuffer(hdc, hBitmap, width, height);
         TextureImageCollection.insert({ hBitmap, textureBuf });
     }
     else {
@@ -52,10 +52,7 @@ TextureBuffer* getTextureMap(HDC hdc, HBITMAP hBitmap, int width, int height) {
 }
 
 
-/* -------------------------------------------------------------------------- */
 
-static const double POSITIVE_INFINITY = 1000000.0;
-static const double SMALLEST_EPSILON = double(1.0) / POSITIVE_INFINITY;
 
 
 /* -------------------------------------------------------------------------- */
@@ -317,7 +314,7 @@ shadingStretchBtl(HDC dest_hdc,
         yd = 0;
     }
 
-    TextureBuffer* textureBuf =
+    BitmapBuffer* textureBuf =
         getTextureMap(dest_hdc, hBitmap, widthSrc, height_source);
 
     while (yd < max_yd && ys < height_source) {
@@ -373,7 +370,7 @@ transpShadingStretchBtl(HDC dest_hdc,
         yd = 0;
     }
 
-    TextureBuffer* textureBuf =
+    BitmapBuffer* textureBuf =
         getTextureMap(dest_hdc, hBitmap, widthSrc, height_source);
 
     while (yd < max_yd && ys < height_source) {
@@ -396,6 +393,9 @@ transpShadingStretchBtl(HDC dest_hdc,
         ys += step;
     }
 }
+
+
+static const double POSITIVE_INFINITY = 1000000.0;
 
 
 /* -------------------------------------------------------------------------- */
@@ -617,13 +617,6 @@ renderScene(int videoPosX, int videoPosY,
     int videoBufSize = rt.right * rt.bottom * 4;
 
     if (!m_videoBuf) {
-        //LockSurfaceAndGetAddr(g_pDDSPrimary);
-        //UnlockSurface(g_pDDSPrimary);
-
-        //DDSurfaceDesc2.lPitch = rt.right * 4;
-       // DDSurfaceDesc2.dwWidth = rt.right;
-       // DDSurfaceDesc2.dwHeight = rt.bottom;
-
         m_renderPitch = rt.right * 4;
         m_renderAreaHeight = rt.bottom;
         m_renderAreaWidth = rt.right;
@@ -631,12 +624,12 @@ renderScene(int videoPosX, int videoPosY,
         m_videoBuf = new BYTE[videoBufSize];
     }
 
-    TextureBuffer* textureBuf = getTextureMap(videoHdc,
+    BitmapBuffer* textureBuf = getTextureMap(videoHdc,
         wMap.getBmp(0xff),
         rt.right,
         rt.bottom);
 
-    wMap.setCamera(m_camera);
+    wMap.setPlayerPos(m_camera.getX(), m_camera.getY());
 
     double d = -1.0; // distance from intersection
 
@@ -790,7 +783,7 @@ renderScene(int videoPosX, int videoPosY,
                 floorRay < (ceilBottom + centerProj);
                 ++floorRay)
             {
-                TextureBuffer* textureBuf;
+                BitmapBuffer* textureBuf;
 
                 const double deltaC = ceilBottom - floorRay;
                 if (deltaC <= 0.0) continue;
@@ -994,141 +987,6 @@ renderScene(int videoPosX, int videoPosY,
 }
 
 
-/* -------------------------------------------------------------------------- */
-// CAMERA
-/* -------------------------------------------------------------------------- */
-
-cell_t Camera::moveTo(int offset, WorldMap& wMap, int deg)
-{
-    cell_t retVal = 0;
-
-    try {
-        int alpha = m_alpha + degHalfVisual() + deg;
-        
-        if (alpha >= m_deg360) {
-            alpha -= m_deg360;
-        }
-        else if (alpha < 0) {
-            alpha += m_deg360;
-        }
-
-        double x = double(offset)*m_cosTbl[alpha];
-        double y = double(offset)*m_sinTbl[alpha];
-
-        const int c = (int)(m_x + x) / wMap.getCellDx();
-        const int r = (int)(m_y + y) / wMap.getCellDy();
-
-        if (r >= wMap.getRowCount() || c >= wMap.getColCount()) {
-            return retVal;
-        }
-
-        retVal = wMap[r][c];
-
-        if ((retVal & 0x000000ff) == 0) {
-            m_x += x;
-            m_y += y;
-        }
-    }
-    catch (...) {
-    }
-
-    return retVal;
-}
-
-
-/* -------------------------------------------------------------------------- */
-
-inline double sign(double x) {
-    return x == 0.0 ? 0.0 : (x>.0 ? 1. : -1.);
-}
-
-
-/* -------------------------------------------------------------------------- */
-
-Camera::Camera(
-    int x, int y,
-    int visualDeg,
-    int xProjRes, int yProjRes,
-    int slope,
-    double projCenter) noexcept :
-    m_x(x),
-    m_y(y),
-    m_alpha(0),
-    m_visualDeg(visualDeg),
-    m_xProjRes(xProjRes),
-    m_yProjRes(yProjRes),
-    m_slope(slope),
-    m_projCenter(projCenter)
-{
-    m_floorShadingPar = yProjRes / 16;
-
-    const int vecSize = m_xProjRes * (360 / m_visualDeg);
-
-    m_degVisual = (vecSize * m_visualDeg) / 360;
-    m_degVisual2 = m_degVisual / 2;
-
-    m_deg90 = vecSize / 4;
-    m_deg180 = vecSize / 2;
-    m_deg270 = (vecSize / 4) * 3;
-    m_deg360 = vecSize - 1;
-
-    m_cosTbl.resize(vecSize);
-    m_sinTbl.resize(vecSize);
-    m_tanTbl.resize(vecSize);
-    m_invSinTbl.resize(vecSize);
-    m_invCosTbl.resize(vecSize);
-    m_invTanTbl.resize(vecSize);
-
-    for (int ray = 0; ray < vecSize; ++ray) {
-        const double alpha = (double(ray*360.0) / double(m_deg360))*(3.14159265359 / 180.0);
-
-        m_cosTbl[ray] = ::cos(alpha);
-        m_sinTbl[ray] = ::sin(alpha);
-        m_tanTbl[ray] = ::tan(alpha);
-
-        m_invCosTbl[ray] = fabs(m_cosTbl[ray]) <= SMALLEST_EPSILON ?
-            sign(m_cosTbl[ray]) * POSITIVE_INFINITY :
-            double(1.0) / m_cosTbl[ray];
-
-        m_invSinTbl[ray] = fabs(m_sinTbl[ray]) <= SMALLEST_EPSILON ?
-            sign(m_cosTbl[ray]) * POSITIVE_INFINITY :
-            double(1.0) / m_sinTbl[ray];
-
-        m_invTanTbl[ray] = fabs(m_tanTbl[ray]) <= SMALLEST_EPSILON ?
-            sign(m_cosTbl[ray]) * POSITIVE_INFINITY :
-            double(1.0) / m_tanTbl[ray];
-    }
-
-}
-
-
-/* -------------------------------------------------------------------------- */
-// WORLDMAP
-/* -------------------------------------------------------------------------- */
-
-bool WorldMap::loadMapInfo(const cell_t* array, uint32_t rows, uint32_t cols)
-{
-    if (rows <= 0 || cols <= 0) {
-        return false;
-    }
-
-    m_map.resize(rows);
-
-    int i = 0;
-
-    for (uint32_t r = 0; r < rows; ++r) {
-        m_map[r].resize(cols);
-
-        for (uint32_t c = 0; c < cols; ++c) {
-            m_map[r][c] = array[i++];
-        }
-    }
-
-    m_maxX = getCellDx() * getColCount();
-    m_maxY = getCellDy() * getRowCount();
-
-    return true; // success
-}
 
 
 /* -------------------------------------------------------------------------- */

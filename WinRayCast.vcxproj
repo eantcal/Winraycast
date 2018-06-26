@@ -237,6 +237,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="BitmapBuffer.cpp" />
+    <ClCompile Include="Player.cpp" />
     <ClCompile Include="RaycastEngine.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
       </PrecompiledHeader>
@@ -254,12 +256,15 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
       </PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="WorldMap.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="WinRayCast.rc" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="BitmapBuffer.h" />
     <ClInclude Include="DdxDevice.h" />
+    <ClInclude Include="Player.h" />
     <ClInclude Include="RaycastEngine.h" />
     <ClInclude Include="resource.h" />
   </ItemGroup>
