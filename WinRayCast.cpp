@@ -154,9 +154,9 @@ void Setup3DEngine(RaycastEngine** the3DEngine, WorldMap** theWorldMap)
         0x0200000001UL,0x000008ff00UL,0x000008ff00UL,0x000008ff00UL,0x000008ff00UL,0x000008ff00UL,0x000008ff00UL,0x0200000001UL,
         0x0200000001UL,0x0200000001UL,0x0200000001UL,0x000008ff00UL,0x0200000001UL,0x0200000001UL,0x0200000001UL,0x0200000001UL,
         0x0200000006UL,0x0200000006UL,0x0200000006UL,0x0503090500UL,0x0200000006UL,0x0200000006UL,0x0200000006UL,0x0200000006UL,
-        0x0000000006UL,0x0000090c00UL,0x0000090c00UL,0x0000090c00UL,0x0000000006UL,0x0000090600UL,0x0000090600UL,0x0000000006UL,
-        0x0000000006UL,0x0000090b00UL,0x0000090c00UL,0x0000090c00UL,0x0000000006UL,0x0000090600UL,0x0000090600UL,0x0000000006UL,
-        0x0000000006UL,0x0000090c00UL,0x0a00090004UL,0x0000090c00UL,0x0000000006UL,0x0000090600UL,0x0000090600UL,0x0000000006UL,
+        0x0000000004UL,0x0000090c00UL,0x0000090c00UL,0x0000090c00UL,0x0000000006UL,0x0000090600UL,0x0000090600UL,0x0000000006UL,
+        0x0000000004UL,0x0000090b00UL,0x0a00090c0eUL,0x0000090c00UL,0x0000000006UL,0x0000090600UL,0x0000090600UL,0x0000000006UL,
+        0x0000000004UL,0x0000090c00UL,0x0a00090004UL,0x0000090c00UL,0x0000000006UL,0x0000090600UL,0x0000090600UL,0x0000000006UL,
         0x0000000006UL,0x0000090c00UL,0x0000090c00UL,0x0000090c00UL,0x0000000006UL,0x0000090600UL,0x0000090600UL,0x0000000006UL,
         0x0000000006UL,0x0000090c00UL,0x0000090b00UL,0x0000090c00UL,0x0000000006UL,0x0000090600UL,0x0000090600UL,0x0000000006UL,
         0x0000000006UL,0x0000090c00UL,0x0000090b00UL,0x0000090c00UL,0x0000090c00UL,0x0000090600UL,0x0000090600UL,0x0000000006UL,
@@ -239,6 +239,9 @@ int APIENTRY WinMain(HINSTANCE hInstance,
         { 0x0a, "0a" },
         { 0x0b, "0b" },
         { 0x0c, "0c" },
+        { 0x0d, "0d" },
+        { 0x0e, "0e" },
+
     };
 
     const int cellTxtTable_item_count = sizeof(cellTxtTable) / sizeof(cellTextureId_bmpName_t);
@@ -326,19 +329,19 @@ void MovePlayer()
         speedFact = 2;
         if (GetAsyncKeyState(VK_LEFT)) {
             g_current_cell_of_player =
-                the3DEngine->camera().moveToH(KEYBSTEP, *theWorldMap);
+                the3DEngine->player().moveToH(KEYBSTEP, *theWorldMap);
         }
         else if (GetAsyncKeyState(VK_RIGHT)) {
             g_current_cell_of_player =
-                the3DEngine->camera().moveToH(-KEYBSTEP, *theWorldMap);
+                the3DEngine->player().moveToH(-KEYBSTEP, *theWorldMap);
         }
     }
     else {
         if (GetAsyncKeyState(VK_LEFT)) {
-            the3DEngine->camera().rotate(-KEYBALPHA);
+            the3DEngine->player().rotate(-KEYBALPHA);
         }
         else if (GetAsyncKeyState(VK_RIGHT)) {
-            the3DEngine->camera().rotate(KEYBALPHA);
+            the3DEngine->player().rotate(KEYBALPHA);
         }
     }
 
@@ -346,31 +349,31 @@ void MovePlayer()
 
     if (GetAsyncKeyState(VK_UP)) {
         g_current_cell_of_player =
-            the3DEngine->camera().moveTo(KEYBSTEP*speedFact, *theWorldMap);
+            the3DEngine->player().moveTo(KEYBSTEP*speedFact, *theWorldMap);
 
         move_up_down = true;
     }
     else if (GetAsyncKeyState(VK_DOWN)) {
         g_current_cell_of_player =
-            the3DEngine->camera().moveTo(-KEYBSTEP * speedFact, *theWorldMap);
+            the3DEngine->player().moveTo(-KEYBSTEP * speedFact, *theWorldMap);
 
         move_up_down = true;
     }
 
     if (GetAsyncKeyState(VK_PRIOR)) {
-        the3DEngine->camera().setSlope(
-            the3DEngine->camera().getSlope() + KEYBSTEP);
+        the3DEngine->player().setSlope(
+            the3DEngine->player().getSlope() + KEYBSTEP);
     }
     else if (GetAsyncKeyState(VK_NEXT)) {
-        the3DEngine->camera().setSlope(
-            the3DEngine->camera().getSlope() - KEYBSTEP);
+        the3DEngine->player().setSlope(
+            the3DEngine->player().getSlope() - KEYBSTEP);
     }
 
     if (GetAsyncKeyState(VK_END)) {
-        the3DEngine->camera().setCenterProj(double(0.90));
+        the3DEngine->player().setCenterProj(double(0.90));
     }
     else if (GetAsyncKeyState(VK_HOME)) {
-        the3DEngine->camera().setCenterProj(double(0.10));
+        the3DEngine->player().setCenterProj(double(0.10));
     }
 }
 
@@ -487,20 +490,20 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
             cell_t floor_type = g_current_cell_of_player >> 16;
             if (floor_type <= 0xB6 && floor_type >= 0xB1) {
-                the3DEngine->camera().setCenterProj((double)0.90);
+                the3DEngine->player().setCenterProj((double)0.90);
             }
             else {
-                the3DEngine->camera().setCenterProj((double)0.50);
+                the3DEngine->player().setCenterProj((double)0.50);
             }
 
             if (floor_type == 0x10) {
-                the3DEngine->camera().setPos(make_pair<int, int>(CELL_SIZE * 2, CELL_SIZE * 2));
+                the3DEngine->player().setPos(make_pair<int, int>(CELL_SIZE * 2, CELL_SIZE * 2));
             }
         }
         break;
 
         case LIGHT_EFFECT: {
-            int y = the3DEngine->camera().getRow(CELL_SIZE);
+            int y = the3DEngine->player().getRow(CELL_SIZE);
             if (y > 31) {
                 the3DEngine->setDepthShadingLevel(50.0);
             }

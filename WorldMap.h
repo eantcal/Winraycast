@@ -54,7 +54,7 @@ private:
     int m_maxX = 0;
     int m_maxY = 0;
 
-    fpoint_t m_cameraCellPos{0,0};
+    fpoint_t m_playerCellPos{0,0};
 
     HBITMAP m_bmp[256] = { 0 };
 
@@ -65,8 +65,8 @@ public:
         return m_bmp[key]; 
     }
 
-    const fpoint_t& get_camera_cell_pos() const noexcept { 
-        return m_cameraCellPos; 
+    const fpoint_t& getPlayerCellPos() const noexcept { 
+        return m_playerCellPos; 
     }
 
     int getRowCount() const noexcept { 
@@ -103,8 +103,8 @@ public:
     }
 
     void setPlayerPos(int x, int y) noexcept {
-        m_cameraCellPos.first = /*camera.getX()*/ x / getCellDx();
-        m_cameraCellPos.second = /*camera.getY()*/ y / getCellDy();
+        m_playerCellPos.first = /*player.getX()*/ x / getCellDx();
+        m_playerCellPos.second = /*player.getY()*/ y / getCellDy();
     }
 
     void applyTextureToPanel(int panelKey, HBITMAP hBitmap) noexcept {

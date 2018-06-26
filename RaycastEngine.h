@@ -51,9 +51,9 @@ using fpoint_t = std::pair<double, double>;
 class RaycastEngine
 {
 public:
-    RaycastEngine(Player& camera, double scale) :
+    RaycastEngine(Player& player, double scale) :
         m_scale(scale),
-        m_camera(camera)
+        m_player(player)
     {
         m_ceilFloorShadingPar = m_scale / m_depthShadingPar;
     }
@@ -98,12 +98,12 @@ public:
         WorldMap& aMap,
         const RECT& rt);
 
-    Player& camera() { 
-        return m_camera; 
+    Player& player() { 
+        return m_player; 
     }
 
-    const Player& camera() const noexcept {
-        return m_camera;
+    const Player& player() const noexcept {
+        return m_player;
     }
 
 private:
@@ -122,15 +122,15 @@ private:
         const RECT& rt,
         bool render_internal_wall);
 
-    Player m_camera;
+    Player m_player;
     BYTE* m_videoBuf = nullptr;
 
     double getM(int ray) noexcept {
-        return(m_camera.tan(ray));
+        return(m_player.tan(ray));
     }
     
     double getM1(int ray) noexcept {
-        return (m_camera.invtan(ray));
+        return (m_player.invtan(ray));
     }
 
     void vertint1st(
@@ -160,11 +160,11 @@ private:
         fpoint_t& point) const noexcept;
 
     double horzDist(const fpoint_t& h_inter, int ray) noexcept {
-        return (h_inter.second - m_camera.getY()) *m_camera.invsin(ray);
+        return (h_inter.second - m_player.getY()) *m_player.invsin(ray);
     }
 
     double vertDist(const fpoint_t& v_inter, int ray) noexcept {
-        return (v_inter.first - m_camera.getX()) *m_camera.invcos(ray);
+        return (v_inter.first - m_player.getX()) *m_player.invcos(ray);
     }
 
     bool isInClientRect(const WorldMap& map, const fpoint_t& point) const noexcept {

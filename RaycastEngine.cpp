@@ -63,12 +63,12 @@ void RaycastEngine:: horzint1st(
     const double& M1,
     fpoint_t& point) const noexcept
 {
-    const double xp = m_camera.getX();
-    const double yp = m_camera.getY();
+    const double xp = m_player.getX();
+    const double yp = m_player.getY();
 
-    double yi = ray >= m_camera.deg180() && ray < m_camera.deg360() ?
-        ((double)wMap.get_camera_cell_pos().second) * wMap.getCellDy() :
-        ((double)wMap.get_camera_cell_pos().second + 1) * wMap.getCellDy();
+    double yi = ray >= m_player.deg180() && ray < m_player.deg360() ?
+        ((double)wMap.getPlayerCellPos().second) * wMap.getCellDy() :
+        ((double)wMap.getPlayerCellPos().second + 1) * wMap.getCellDy();
 
     double xi = M1 * (yi - yp) + xp;
 
@@ -85,12 +85,12 @@ void RaycastEngine::vertint1st(
     const double& M,
     fpoint_t& point) const noexcept
 {
-    const double xp = m_camera.getX();
-    const double yp = m_camera.getY();
+    const double xp = m_player.getX();
+    const double yp = m_player.getY();
 
-    const double xi = ray >= m_camera.deg90() && ray < m_camera.deg270() ?
-        ((double)wMap.get_camera_cell_pos().first) * wMap.getCellDx() :
-        ((double)wMap.get_camera_cell_pos().first + 1) * wMap.getCellDx();
+    const double xi = ray >= m_player.deg90() && ray < m_player.deg270() ?
+        ((double)wMap.getPlayerCellPos().first) * wMap.getCellDx() :
+        ((double)wMap.getPlayerCellPos().first + 1) * wMap.getCellDx();
 
     const double yi = M * (xi - xp) + yp;
 
@@ -111,7 +111,7 @@ vertint(WorldMap& wMap,
 {
     double xi, yi;
 
-    if (ray >= m_camera.deg90() && ray < m_camera.deg270()) {
+    if (ray >= m_player.deg90() && ray < m_player.deg270()) {
         yi = firstInt.second - M * wMap.getCellDx();
         xi = firstInt.first - wMap.getCellDx();
     }
@@ -137,7 +137,7 @@ horzint(WorldMap& wMap,
 {
     double xi, yi;
 
-    if (ray >= m_camera.deg180() && ray < m_camera.deg360()) {
+    if (ray >= m_player.deg180() && ray < m_player.deg360()) {
         xi = firstInt.first - M1 * wMap.getCellDy();
         yi = firstInt.second - wMap.getCellDy();
     }
@@ -162,7 +162,7 @@ horzWall(WorldMap& wMap,
     int c = int(point.first / wMap.getCellDx());
     int r = int(point.second / wMap.getCellDy());
 
-    if (ray >= m_camera.deg180() && ray < m_camera.deg360()) {
+    if (ray >= m_player.deg180() && ray < m_player.deg360()) {
         --r;
     }
 
@@ -195,7 +195,7 @@ vertWall(WorldMap& wMap,
     int c = int(point.first / wMap.getCellDx());
     int r = int(point.second / wMap.getCellDy());
 
-    if (ray >= m_camera.deg90() && ray < m_camera.deg270()) {
+    if (ray >= m_player.deg90() && ray < m_player.deg270()) {
         --c;
     }
 
@@ -228,7 +228,7 @@ horzIntWall(WorldMap& wMap,
     int c = int(point.first / wMap.getCellDx());
     int r = int(point.second / wMap.getCellDy());
 
-    if (!(ray >= m_camera.deg180() && ray < m_camera.deg360())) {
+    if (!(ray >= m_player.deg180() && ray < m_player.deg360())) {
         --r;
     }
 
@@ -261,7 +261,7 @@ vertIntWall(WorldMap& wMap,
     int c = int(point.first / wMap.getCellDx());
     int r = int(point.second / wMap.getCellDy());
 
-    if (!(ray >= m_camera.deg90() && ray < m_camera.deg270())) {
+    if (!(ray >= m_player.deg90() && ray < m_player.deg270())) {
         --c;
     }
 
@@ -417,16 +417,16 @@ renderTranspWall(int videoPosX,
 
     double d = -1.0; // distance from intersection
 
-    int cameraRayOffset = m_camera.getAlpha();
-    int cameraXPos = m_camera.getX();
-    int cameraYPos = m_camera.getY();
+    int cameraRayOffset = m_player.getAlpha();
+    int cameraXPos = m_player.getX();
+    int cameraYPos = m_player.getY();
 
     // main casting loop (for each pixel of projection x coord...)
-    for (int ray = 0; ray < m_camera.getXProjRes(); ++ray) {
+    for (int ray = 0; ray < m_player.getXProjRes(); ++ray) {
         int relRay = ray + cameraRayOffset;
 
-        if (relRay < 0) relRay += m_camera.deg360();
-        else if (relRay >= m_camera.deg360()) relRay -= m_camera.deg360();
+        if (relRay < 0) relRay += m_player.deg360();
+        else if (relRay >= m_player.deg360()) relRay -= m_player.deg360();
 
         double M = getM(relRay);
         double M1 = getM1(relRay);
@@ -491,7 +491,7 @@ renderTranspWall(int videoPosX,
 
         bool vert = true;
 
-        //What's the nearest to the camera ?
+        //What's the nearest to the player ?
         if (dh < dv) {
             mapKey = hCellVal;
             d = dh;
@@ -513,16 +513,16 @@ renderTranspWall(int videoPosX,
             continue;
         }
         //Compute the view distort LTU
-        int distortDeg = ray - m_camera.degHalfVisual();
+        int distortDeg = ray - m_player.degHalfVisual();
 
-        if (distortDeg >= m_camera.deg360()) {
-            distortDeg -= m_camera.deg360();
+        if (distortDeg >= m_player.deg360()) {
+            distortDeg -= m_player.deg360();
         }
         else if (distortDeg < 0) {
-            distortDeg += m_camera.deg360();
+            distortDeg += m_player.deg360();
         }
 
-        double viewDistortLut = m_camera.cos(distortDeg);
+        double viewDistortLut = m_player.cos(distortDeg);
         double scaledDistortLut = m_scale / viewDistortLut;
 
         int k = 0;
@@ -531,7 +531,7 @@ renderTranspWall(int videoPosX,
         //Prevent division by zero
         if (d > double(0.0)) {
             k = int(scaledDistortLut / d);
-            centerProj = int(k*m_camera.getCenterProj());
+            centerProj = int(k*m_player.getCenterProj());
         }
 
         if (unsigned(k) < POSITIVE_INFINITY) {
@@ -562,13 +562,13 @@ renderTranspWall(int videoPosX,
                     transpShadingStretchBtl(
                         videoHdc,
                         ray,
-                        ((m_camera.getSlope() + m_camera.getYProjRes()) >> 1) - centerProj - k,
+                        ((m_player.getSlope() + m_player.getYProjRes()) >> 1) - centerProj - k,
                         k,
                         x_coord_source,
                         0,
                         wMap.getCellDy(), //height
                         wMap.getCellDx(), //width (do not invert it)
-                        m_camera.getYProjRes(),
+                        m_player.getYProjRes(),
                         shadingAttr,
                         wMap.getBmp(wallHeight & 0xff),
                         TRANSP_COLOR
@@ -578,13 +578,13 @@ renderTranspWall(int videoPosX,
                 transpShadingStretchBtl(
                     videoHdc,
                     ray,
-                    ((m_camera.getSlope() + m_camera.getYProjRes()) >> 1) - centerProj,
+                    ((m_player.getSlope() + m_player.getYProjRes()) >> 1) - centerProj,
                     k,
                     x_coord_source,
                     0,
                     wMap.getCellDy(), //height
                     wMap.getCellDx(), //width (do not invert it)
-                    m_camera.getYProjRes(),
+                    m_player.getYProjRes(),
                     shadingAttr,
                     wMap.getBmp(wallKey & 0xff),
                     TRANSP_COLOR
@@ -629,15 +629,15 @@ renderScene(int videoPosX, int videoPosY,
         rt.right,
         rt.bottom);
 
-    wMap.setPlayerPos(m_camera.getX(), m_camera.getY());
+    wMap.setPlayerPos(m_player.getX(), m_player.getY());
 
     double d = -1.0; // distance from intersection
 
-    const int cameraRayOffset = m_camera.getAlpha();
-    const int cameraXPos = m_camera.getX();
-    const int cameraYPos = m_camera.getY();
+    const int cameraRayOffset = m_player.getAlpha();
+    const int cameraXPos = m_player.getX();
+    const int cameraYPos = m_player.getY();
 
-    const int org_x_res = m_camera.getXProjRes();
+    const int org_x_res = m_player.getXProjRes();
 
     textureBuf->fillBuffer(m_videoBuf, cameraRayOffset /*+ m_fps/30*/, org_x_res);
 
@@ -645,8 +645,8 @@ renderScene(int videoPosX, int videoPosY,
     for (int ray = 0; ray < org_x_res; ++ray) {
         int relRay = ray + cameraRayOffset;
 
-        if (relRay < 0) relRay += m_camera.deg360();
-        else if (relRay >= m_camera.deg360()) relRay -= m_camera.deg360();
+        if (relRay < 0) relRay += m_player.deg360();
+        else if (relRay >= m_player.deg360()) relRay -= m_player.deg360();
 
         const double M = getM(relRay);
         const double M1 = getM1(relRay);
@@ -682,7 +682,7 @@ renderScene(int videoPosX, int videoPosY,
 
         bool vert = true;
 
-        //What's the nearest to the camera ?
+        //What's the nearest to the player ?
         if (dh < dv) {
             mapKey = hCellVal;
             d = dh;
@@ -697,18 +697,18 @@ renderScene(int videoPosX, int videoPosY,
         const int wallHeight = (mapKey & 0xff00000000UL) >> 32;
 
         //Compute the view distort LTU
-        int distortDeg = ray - m_camera.degHalfVisual();
+        int distortDeg = ray - m_player.degHalfVisual();
 
-        if (distortDeg >= m_camera.deg360()) {
-            distortDeg -= m_camera.deg360();
+        if (distortDeg >= m_player.deg360()) {
+            distortDeg -= m_player.deg360();
         }
         else if (distortDeg < 0) {
-            distortDeg += m_camera.deg360();
+            distortDeg += m_player.deg360();
         }
 
-        const double viewDistortLut = m_camera.cos(distortDeg);
+        const double viewDistortLut = m_player.cos(distortDeg);
         const double scaledDistortLut = m_scale / viewDistortLut;
-        const double ceilScaledDistortLut = scaledDistortLut * (double)m_camera.getCenterProj();
+        const double ceilScaledDistortLut = scaledDistortLut * (double)m_player.getCenterProj();
         const double floorScaledDistortLut = scaledDistortLut - ceilScaledDistortLut;
 
         int k = 0;
@@ -717,12 +717,12 @@ renderScene(int videoPosX, int videoPosY,
         //Prevent division by zero
         if (d > 0.0) {
             k = int(scaledDistortLut / d);
-            centerProj = int(k*m_camera.getCenterProj());
+            centerProj = int(k*m_player.getCenterProj());
         }
 
         if (unsigned(k) < POSITIVE_INFINITY) {
             // Ceil rendering 
-            int ceilBottom = ((m_camera.getYProjRes() + m_camera.getSlope()) >> 1);
+            int ceilBottom = ((m_player.getYProjRes() + m_player.getSlope()) >> 1);
 
             //For each visible y-coord of screen
             for (int ceilRay = 0; ceilRay < (ceilBottom - centerProj); ++ceilRay) {
@@ -732,8 +732,8 @@ renderScene(int videoPosX, int videoPosY,
 
                 const double distToPtOnCeiling = ceilScaledDistortLut / deltaC;
 
-                const int xPicture = int(m_camera.cos(relRay)*distToPtOnCeiling) + cameraXPos;
-                const int yPicture = int(m_camera.sin(relRay)*distToPtOnCeiling) + cameraYPos;
+                const int xPicture = int(m_player.cos(relRay)*distToPtOnCeiling) + cameraXPos;
+                const int yPicture = int(m_player.sin(relRay)*distToPtOnCeiling) + cameraYPos;
 
                 const int cellDx = wMap.getCellDx();
                 const int cellDy = wMap.getCellDy();
@@ -779,7 +779,7 @@ renderScene(int videoPosX, int videoPosY,
             }
 
             // Floor rendering
-            for (int floorRay = m_camera.getSlope();
+            for (int floorRay = m_player.getSlope();
                 floorRay < (ceilBottom + centerProj);
                 ++floorRay)
             {
@@ -790,8 +790,8 @@ renderScene(int videoPosX, int videoPosY,
 
                 const double distToPtOnCeiling = floorScaledDistortLut / deltaC;
 
-                const int xPicture = int(m_camera.cos(relRay)*distToPtOnCeiling) + cameraXPos;
-                const int yPicture = int(m_camera.sin(relRay)*distToPtOnCeiling) + cameraYPos;
+                const int xPicture = int(m_player.cos(relRay)*distToPtOnCeiling) + cameraXPos;
+                const int yPicture = int(m_player.sin(relRay)*distToPtOnCeiling) + cameraYPos;
 
                 const int cellDx = wMap.getCellDx();
                 const int cellDy = wMap.getCellDy();
@@ -819,7 +819,7 @@ renderScene(int videoPosX, int videoPosY,
                 const double shadingAttr = m_ceilFloorShadingPar / double(distToPtOnCeiling);
                 const COLORREF c = textureBuf->getPixel(xPicture % cellDx, yPicture % cellDy);
 
-                const int y = m_camera.getSlope() + m_camera.getYProjRes() - floorRay;
+                const int y = m_player.getSlope() + m_player.getYProjRes() - floorRay;
 
                 if (shadingAttr >= 1.0) {
                     DDrawPixel32(m_videoBuf, ray, y, c);
@@ -858,18 +858,18 @@ renderScene(int videoPosX, int videoPosY,
                     shadingStretchBtl(
                         videoHdc,
                         ray,
-                        ((m_camera.getSlope() + m_camera.getYProjRes()) >> 1) - centerProj - k,
+                        ((m_player.getSlope() + m_player.getYProjRes()) >> 1) - centerProj - k,
                         k,
                         currentCellRay, //x_coord_source,
                         0,
                         wMap.getCellDy(), //height
                         wMap.getCellDx(), //width (do not invert it)
-                        m_camera.getYProjRes(),
+                        m_player.getYProjRes(),
                         shadingAttr,
                         wMap.getBmp(wallHeight & 0xff));
 
                     // Ceil rendering 
-                    const int ceilBottom = ((m_camera.getYProjRes() + m_camera.getSlope()) >> 1);
+                    const int ceilBottom = ((m_player.getYProjRes() + m_player.getSlope()) >> 1);
 
                     //For each visible y-coord of screen
                     for (int ceilRay = 0;
@@ -882,8 +882,8 @@ renderScene(int videoPosX, int videoPosY,
                         if (deltaC <= 0.0) continue;
                         const double distToPtOnCeiling = ceilScaledDistortLut / deltaC;
 
-                        const int xPicture = int(m_camera.cos(relRay)*distToPtOnCeiling) + cameraXPos;
-                        const int yPicture = int(m_camera.sin(relRay)*distToPtOnCeiling) + cameraYPos;
+                        const int xPicture = int(m_player.cos(relRay)*distToPtOnCeiling) + cameraXPos;
+                        const int yPicture = int(m_player.sin(relRay)*distToPtOnCeiling) + cameraYPos;
 
                         const int cellDx = wMap.getCellDx();
                         const int cellDy = wMap.getCellDy();
@@ -929,13 +929,13 @@ renderScene(int videoPosX, int videoPosY,
                 shadingStretchBtl(
                     videoHdc,
                     ray,
-                    ((m_camera.getSlope() + m_camera.getYProjRes()) >> 1) - centerProj,
+                    ((m_player.getSlope() + m_player.getYProjRes()) >> 1) - centerProj,
                     k,
                     currentCellRay, //x_coord_source,
                     0,
                     wMap.getCellDy(), //height
                     wMap.getCellDx(), //width (do not invert it)
-                    m_camera.getYProjRes(),
+                    m_player.getYProjRes(),
                     shadingAttr,
                     current_bmp
                 );
@@ -973,8 +973,8 @@ renderScene(int videoPosX, int videoPosY,
             -rt.bottom,                     // height of destination rectangle
             0,                              // x-coord of source upper-left corner
             0,                              // y-coord of source upper-left corner
-            m_camera.getXProjRes(),         // width of source rectangle
-            m_camera.getYProjRes(),         // height of source rectangle
+            m_player.getXProjRes(),         // width of source rectangle
+            m_player.getYProjRes(),         // height of source rectangle
             (CONST VOID *)m_videoBuf,       // bitmap bits
             (CONST BITMAPINFO *)&BmpInfo,   // bitmap data
             DIB_RGB_COLORS,                 // usage options
