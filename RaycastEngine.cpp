@@ -61,7 +61,7 @@ void RaycastEngine:: horzint1st(
     WorldMap& wMap,
     int ray,
     const double& M1,
-    fpoint_t& point) const noexcept
+    Point2d& point) const noexcept
 {
     const double xp = m_player.getX();
     const double yp = m_player.getY();
@@ -83,7 +83,7 @@ void RaycastEngine::vertint1st(
     WorldMap& wMap,
     int ray,
     const double& M,
-    fpoint_t& point) const noexcept
+    Point2d& point) const noexcept
 {
     const double xp = m_player.getX();
     const double yp = m_player.getY();
@@ -104,10 +104,10 @@ void RaycastEngine::vertint1st(
 void
 RaycastEngine::
 vertint(WorldMap& wMap,
-    const fpoint_t& firstInt,
+    const Point2d& firstInt,
     int ray,
     const double& M,
-    fpoint_t& point) const noexcept
+    Point2d& point) const noexcept
 {
     double xi, yi;
 
@@ -130,10 +130,10 @@ vertint(WorldMap& wMap,
 void
 RaycastEngine::
 horzint(WorldMap& wMap,
-    const fpoint_t& firstInt,
+    const Point2d& firstInt,
     int ray,
     const double& M1,
-    fpoint_t& point) const noexcept
+    Point2d& point) const noexcept
 {
     double xi, yi;
 
@@ -153,10 +153,10 @@ horzint(WorldMap& wMap,
 
 /* -------------------------------------------------------------------------- */
 
-cell_t
+Cell
 RaycastEngine::
 horzWall(WorldMap& wMap,
-    const fpoint_t& point,
+    const Point2d& point,
     int ray) const noexcept
 {
     int c = int(point.first / wMap.getCellDx());
@@ -186,10 +186,10 @@ horzWall(WorldMap& wMap,
 
 /* -------------------------------------------------------------------------- */
 
-cell_t
+Cell
 RaycastEngine::
 vertWall(WorldMap& wMap,
-    const fpoint_t& point,
+    const Point2d& point,
     int ray) const noexcept
 {
     int c = int(point.first / wMap.getCellDx());
@@ -219,10 +219,10 @@ vertWall(WorldMap& wMap,
 
 /* -------------------------------------------------------------------------- */
 
-cell_t
+Cell
 RaycastEngine::
 horzIntWall(WorldMap& wMap,
-    const fpoint_t& point,
+    const Point2d& point,
     int ray) const noexcept
 {
     int c = int(point.first / wMap.getCellDx());
@@ -252,10 +252,10 @@ horzIntWall(WorldMap& wMap,
 
 /* -------------------------------------------------------------------------- */
 
-cell_t
+Cell
 RaycastEngine::
 vertIntWall(WorldMap& wMap,
-    const fpoint_t& point,
+    const Point2d& point,
     int ray) const noexcept
 {
     int c = int(point.first / wMap.getCellDx());
@@ -432,16 +432,16 @@ renderTranspWall(int videoPosX,
         double M1 = getM1(relRay);
 
         //Search first intersection with the grid (WorldMap)
-        fpoint_t pv;
-        fpoint_t ph;
+        Point2d pv;
+        Point2d ph;
 
         horzint1st(wMap, relRay, M1, ph);
         vertint1st(wMap, relRay, M, pv);
 
-        cell_t hCellVal = 0;
-        cell_t vCellVal = 0;
+        Cell hCellVal = 0;
+        Cell vCellVal = 0;
 
-        cell_t mapKey = 0;
+        Cell mapKey = 0;
 
         bool v_not_found = false;
         bool h_not_found = false;
@@ -506,8 +506,8 @@ renderTranspWall(int videoPosX,
             continue;
         }
 
-        const cell_t wallKey = (mapKey & 0xFF000000) >> 24;
-        const cell_t wallHeight = (mapKey & 0xff00000000UL) >> 32;
+        const Cell wallKey = (mapKey & 0xFF000000) >> 24;
+        const Cell wallHeight = (mapKey & 0xff00000000UL) >> 32;
 
         if (!wallKey) {
             continue;
@@ -652,16 +652,16 @@ renderScene(int videoPosX, int videoPosY,
         const double M1 = getM1(relRay);
 
         //Search first intersection with the grid (WorldMap)
-        fpoint_t pv;
-        fpoint_t ph;
+        Point2d pv;
+        Point2d ph;
 
         horzint1st(wMap, relRay, M1, ph);
         vertint1st(wMap, relRay, M, pv);
 
-        cell_t hCellVal = 0;
-        cell_t vCellVal = 0;
+        Cell hCellVal = 0;
+        Cell vCellVal = 0;
 
-        cell_t mapKey = 0;
+        Cell mapKey = 0;
 
         //while you don't cross a wall limit, search for next intersection
         while (vCellVal = vertWall(wMap, pv, relRay), (vCellVal & 0xff) == 0) {
@@ -738,13 +738,13 @@ renderScene(int videoPosX, int videoPosY,
                 const int cellDx = wMap.getCellDx();
                 const int cellDy = wMap.getCellDy();
 
-                cell_t ceilKey = 0;
+                Cell ceilKey = 0;
 
                 const int row = yPicture / cellDy;
                 const int col = xPicture / cellDx;
 
                 if (row<int(wMap.getRowCount()) && col<int(wMap.getColCount()) && col >= 0 && row >= 0) {
-                    const cell_t mapKey = wMap[row][col];
+                    const Cell mapKey = wMap[row][col];
                     
                     if (mapKey & 0xff) 
                         continue;
@@ -802,7 +802,7 @@ renderScene(int videoPosX, int videoPosY,
                 const int col = xPicture / cellDx;
 
                 if ((row<int(wMap.getRowCount())) && col<int(wMap.getColCount()) && row >= 0 && col >= 0) {
-                    const cell_t mapKey = wMap[row][col];
+                    const Cell mapKey = wMap[row][col];
                     if (mapKey & 0xff) continue;
                     floorKey = (mapKey & 0x00ff0000) >> 16;
                 }
@@ -894,7 +894,7 @@ renderScene(int videoPosX, int videoPosY,
                         const int col = xPicture / cellDx;
 
                         if (row<int(wMap.getRowCount()) && col<int(wMap.getColCount()) && col >= 0 && row >= 0) {
-                            cell_t mapKey = wMap[row][col];
+                            Cell mapKey = wMap[row][col];
                             if (mapKey & 0xff) continue;
                             ceilKey = (mapKey >> 8) & 0xff;
                         }

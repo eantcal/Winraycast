@@ -63,9 +63,9 @@ private:
     int m_alpha;
 
 public:
-    using fpoint_t = std::pair<double, double>;
+    using Point2d = std::pair<double, double>;
 
-    using cell_t = uint64_t;
+    using Cell = uint64_t;
 
     Player(int x = 0,
         int y = 0,
@@ -135,16 +135,16 @@ public:
         return int(m_y / cellDy); 
     }
 
-    void setPos(const fpoint_t& position) noexcept {
+    void setPos(const Point2d& position) noexcept {
         m_x = position.first; 
         m_y = position.second;
     }
 
-    cell_t Player::moveToH(int offset, WorldMap& wMap) {
+    Cell Player::moveToH(int offset, WorldMap& wMap) {
         return moveTo(offset, wMap, -m_deg90);
     }
 
-    cell_t moveTo(int offset, WorldMap& wMap, int deg = 0);
+    Cell moveTo(int offset, WorldMap& wMap, int deg = 0);
 
     int getAlpha() const noexcept { 
         return m_alpha; 

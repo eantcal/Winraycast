@@ -26,9 +26,9 @@
 
 /* -------------------------------------------------------------------------- */
 
-Player::cell_t Player::moveTo(int offset, WorldMap& wMap, int deg)
+Player::Cell Player::moveTo(int offset, WorldMap& wMap, int deg)
 {
-    cell_t retVal = 0;
+    Cell retVal = 0;
 
     try {
         int alpha = m_alpha + degHalfVisual() + deg;

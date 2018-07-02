@@ -38,34 +38,17 @@
 class WorldMap
 {
 public:
-    using cell_t = uint64_t;
-    using fpoint_t = std::pair<double, double>;
+    using Cell = uint64_t;
+    using Point2d = std::pair<double, double>;
+    using TextureList = std::map<std::string, std::string>;
 
-
-private:
-    using row_t = std::vector<cell_t>;
-    using matrix_t = std::vector<row_t>;
-
-    matrix_t m_map;
-
-    int m_cellDx = 256;
-    int m_cellDy = 256;
-
-    int m_maxX = 0;
-    int m_maxY = 0;
-
-    fpoint_t m_playerCellPos{0,0};
-
-    HBITMAP m_bmp[256] = { 0 };
-
-public:
     WorldMap() = default;
 
     HBITMAP getBmp(int key) const noexcept { 
         return m_bmp[key]; 
     }
 
-    const fpoint_t& getPlayerCellPos() const noexcept { 
+    const Point2d& getPlayerCellPos() const noexcept { 
         return m_playerCellPos; 
     }
 
@@ -85,15 +68,14 @@ public:
         return m_cellDy; 
     }
 
-    std::vector<cell_t> & operator[](uint32_t index) throw () { 
+    std::vector<Cell> & operator[](uint32_t index) throw () { 
         return m_map[index]; 
     }
 
-    const std::vector<cell_t> & operator[](uint32_t index) const throw () {
+    const std::vector<Cell> & operator[](uint32_t index) const throw () {
         return m_map[index];
     }
 
-    bool loadMapInfo(const cell_t* array, uint32_t rows, uint32_t cols);
 
     void resizeCell(uint32_t cellDx, uint32_t cellDy) noexcept {
         m_cellDx = cellDx;
@@ -119,11 +101,40 @@ public:
         return m_maxY; 
     }
 
-    void set(int row, int col, cell_t cellVal) {
+    void set(int row, int col, Cell cellVal) {
         if (col < getColCount() && row < getRowCount())
             m_map[row][col] = cellVal;
     }
 
+    bool load(const std::string& fileName);
+
+    const TextureList& getTextureList() const noexcept {
+        return m_textureList;
+    }
+
+    TextureList& getTextureList() noexcept {
+        return m_textureList;
+    }
+
+private:
+    bool setMapInfo(const Cell* array, uint32_t rows, uint32_t cols);
+
+    using Row = std::vector<Cell>;
+    using Matrix = std::vector<Row>;
+
+    Matrix m_map;
+
+    int m_cellDx = 256;
+    int m_cellDy = 256;
+
+    int m_maxX = 0;
+    int m_maxY = 0;
+
+    Point2d m_playerCellPos{ 0,0 };
+
+    HBITMAP m_bmp[256] = { 0 };
+
+    TextureList m_textureList;
 };
 
 

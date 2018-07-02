@@ -72,8 +72,6 @@ static HRESULT InitInstance(HINSTANCE hInstance, int nCmdShow);
 #define CAMERA_CEL_COL_POS 4
 #define CAMERA_CEL_ROW_POS 4
 
-#define MAP_ROWS 16
-#define MAP_COLS 8
 
 
 /* -------------------------------------------------------------------------- */
@@ -97,7 +95,7 @@ static void Render3DEnvironment();
 
 static bool g_FullScreenModeActive = false;
 static BOOL g_bActive = FALSE;   // Is application active?
-static cell_t  g_current_cell_of_player = 0;
+static Cell g_current_cell_of_player = 0;
 
 WorldMap*      theWorldMap = 0;
 RaycastEngine* the3DEngine = 0;
@@ -130,12 +128,15 @@ void ChangeToFullScreen()
 /* -------------------------------------------------------------------------- */
 
 static
-void Setup3DEngine(RaycastEngine** the3DEngine, WorldMap** theWorldMap)
+bool Setup3DEngine(RaycastEngine** the3DEngine, WorldMap** theWorldMap)
 {
-    const int map_rows = MAP_ROWS;
-    const int map_cols = MAP_COLS;
+    *theWorldMap = new (std::nothrow) WorldMap;
 
-    *theWorldMap = new WorldMap();
+    if (!(*theWorldMap)) {
+        return false;
+    }
+
+    WorldMap & world = **theWorldMap;
 
     Player aCamera = Player(0, 0, VISUAL_DEGREE, PROJ_X_RES, PROJ_Y_RES);
     aCamera.setPos(
@@ -143,42 +144,58 @@ void Setup3DEngine(RaycastEngine** the3DEngine, WorldMap** theWorldMap)
             CELL_SIZE * CAMERA_CEL_ROW_POS)
     );
 
-    // World MAP
-    cell_t array_map[map_rows][map_cols] = {
-        0x0200000001UL,0x0200000001UL,0x0200000001UL,0x0200000001UL,0x0200000001UL,0x0200000001UL,0x0200000001UL,0x0200000001UL,
-        0x0200000001UL,0x000008ff00UL,0x000008ff00UL,0x000008ff00UL,0x000008ff00UL,0x000008ff00UL,0x000008ff00UL,0x0200000001UL,
-        0x0200000001UL,0x000008ff00UL,0x000008ff00UL,0x000008ff00UL,0x000008ff00UL,0x000008ff00UL,0x000008ff00UL,0x0200000001UL,
-        0x0200000001UL,0x000008ff00UL,0x0500000007UL,0x000008ff00UL,0x0700000005UL,0x000008ff00UL,0x000008ff00UL,0x0200000001UL,
-        0x0200000001UL,0x000008ff00UL,0x000008ff00UL,0x000008ff00UL,0x000008ff00UL,0x000008ff00UL,0x000008ff00UL,0x0200000001UL,
-        0x0200000001UL,0x000008ff00UL,0x000008ff00UL,0x000008ff00UL,0x000008ff00UL,0x000008ff00UL,0x000008ff00UL,0x0200000001UL,
-        0x0200000001UL,0x000008ff00UL,0x000008ff00UL,0x000008ff00UL,0x000008ff00UL,0x000008ff00UL,0x000008ff00UL,0x0200000001UL,
-        0x0200000001UL,0x0200000001UL,0x0200000001UL,0x000008ff00UL,0x0200000001UL,0x0200000001UL,0x0200000001UL,0x0200000001UL,
-        0x0200000006UL,0x0200000006UL,0x0200000006UL,0x0503090500UL,0x0200000006UL,0x0200000006UL,0x0200000006UL,0x0200000006UL,
-        0x0000000004UL,0x0000090c00UL,0x0000090c00UL,0x0000090c00UL,0x0000000006UL,0x0000090600UL,0x0000090600UL,0x0000000006UL,
-        0x0000000004UL,0x0000090b00UL,0x0a00090c0eUL,0x0000090c00UL,0x0000000006UL,0x0000090600UL,0x0000090600UL,0x0000000006UL,
-        0x0000000004UL,0x0000090c00UL,0x0a00090004UL,0x0000090c00UL,0x0000000006UL,0x0000090600UL,0x0000090600UL,0x0000000006UL,
-        0x0000000006UL,0x0000090c00UL,0x0000090c00UL,0x0000090c00UL,0x0000000006UL,0x0000090600UL,0x0000090600UL,0x0000000006UL,
-        0x0000000006UL,0x0000090c00UL,0x0000090b00UL,0x0000090c00UL,0x0000000006UL,0x0000090600UL,0x0000090600UL,0x0000000006UL,
-        0x0000000006UL,0x0000090c00UL,0x0000090b00UL,0x0000090c00UL,0x0000090c00UL,0x0000090600UL,0x0000090600UL,0x0000000006UL,
-        0x0000000006UL,0x0000000006UL,0x0000000006UL,0x0000000006UL,0x0000000006UL,0x0000000006UL,0x0000000006UL,0x0000000006UL,
+    world.load("res/world.ini");
+    world.resizeCell(CELL_SIZE, CELL_SIZE);
+
+    const auto & textureList = world.getTextureList();
+
+    auto loadBMP = [](const std::string& image,
+        const int dx = CELL_SIZE,
+        const int dy = CELL_SIZE,
+        const char* ext = ".bmp")
+    {
+        string image_name = "res/";
+        image_name += image;
+        image_name += ext;
+
+        return (HBITMAP)
+            LoadImage(g_hInstance,
+                image_name.c_str(),
+                IMAGE_BITMAP,
+                dx, dy,
+                LR_LOADFROMFILE);
     };
 
-    (*theWorldMap)->loadMapInfo((const cell_t*)array_map, map_rows, map_cols);
-    (*theWorldMap)->resizeCell(CELL_SIZE, CELL_SIZE);
+    for (const auto & item : textureList) {
+        world.applyTextureToPanel(
+            stoi(item.first, 0, 16),
+            loadBMP(item.second)
+        );
+    }
+
+#define SKY_BMP_RESOURCE "clouds"
+
+    world.applyTextureToPanel(
+        255,
+        loadBMP(SKY_BMP_RESOURCE, PROJ_X_RES, PROJ_Y_RES)
+    );
 
     *the3DEngine = new RaycastEngine(aCamera, SCALE);
+
+    return true;
 }
 
 
 /* -------------------------------------------------------------------------- */
 
 inline
-HBITMAP loadBMP(const char* image,
+HBITMAP loadBMP(const std::string& image,
     const int dx = CELL_SIZE,
     const int dy = CELL_SIZE,
     const char* ext = ".bmp")
 {
-    string image_name = image;
+    string image_name = "res/";
+    image_name += image;
     image_name += ext;
 
     return (HBITMAP)
@@ -221,43 +238,7 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 
     Setup3DEngine(&the3DEngine, &theWorldMap);
 
-    struct cellTextureId_bmpName_t {
-        unsigned int txtId;
-        const char * txtFileName;
-    };
-
-    cellTextureId_bmpName_t cellTxtTable[] = {
-        { 0x01, "01" },
-        { 0x02, "02" },
-        { 0x03, "03" },
-        { 0x04, "04" },
-        { 0x05, "05" },
-        { 0x06, "06" },
-        { 0x07, "07" },
-        { 0x08, "08" },
-        { 0x09, "09" },
-        { 0x0a, "0a" },
-        { 0x0b, "0b" },
-        { 0x0c, "0c" },
-        { 0x0d, "0d" },
-        { 0x0e, "0e" },
-
-    };
-
-    const int cellTxtTable_item_count = sizeof(cellTxtTable) / sizeof(cellTextureId_bmpName_t);
-    for (int i = 0; i < cellTxtTable_item_count; ++i) {
-        theWorldMap->applyTextureToPanel(
-            cellTxtTable[i].txtId,
-            loadBMP(cellTxtTable[i].txtFileName)
-        );
-    }
-
-#define SKY_BMP_RESOURCE "clouds"
-
-    theWorldMap->applyTextureToPanel(
-        255,
-        loadBMP(SKY_BMP_RESOURCE, PROJ_X_RES, PROJ_Y_RES)
-    );
+    
 
     g_bActive = TRUE;
 
@@ -488,7 +469,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 }
             }
 
-            cell_t floor_type = g_current_cell_of_player >> 16;
+            Cell floor_type = g_current_cell_of_player >> 16;
             if (floor_type <= 0xB6 && floor_type >= 0xB1) {
                 the3DEngine->player().setCenterProj((double)0.90);
             }

@@ -36,14 +36,14 @@
 
 /* -------------------------------------------------------------------------- */
 
-using cell_t=uint64_t;
+using Cell=uint64_t;
 
 class WorldMap;
 
 
 /* -------------------------------------------------------------------------- */
 
-using fpoint_t = std::pair<double, double>;
+using Point2d = std::pair<double, double>;
 
 
 /* -------------------------------------------------------------------------- */
@@ -137,46 +137,46 @@ private:
         WorldMap& map, 
         int ray, 
         const double& M, 
-        fpoint_t& point) const noexcept;
+        Point2d& point) const noexcept;
 
     void horzint1st(
         WorldMap& map, 
         int ray, 
         const double& M1, 
-        fpoint_t& point) const noexcept;
+        Point2d& point) const noexcept;
 
     void vertint(
         WorldMap& map, 
-        const fpoint_t& firstInt, 
+        const Point2d& firstInt, 
         int ray, 
         const double& M, 
-        fpoint_t& point) const noexcept;
+        Point2d& point) const noexcept;
 
     void horzint(
         WorldMap& map, 
-        const fpoint_t& firstInt, 
+        const Point2d& firstInt, 
         int ray, 
         const double& M1, 
-        fpoint_t& point) const noexcept;
+        Point2d& point) const noexcept;
 
-    double horzDist(const fpoint_t& h_inter, int ray) noexcept {
+    double horzDist(const Point2d& h_inter, int ray) noexcept {
         return (h_inter.second - m_player.getY()) *m_player.invsin(ray);
     }
 
-    double vertDist(const fpoint_t& v_inter, int ray) noexcept {
+    double vertDist(const Point2d& v_inter, int ray) noexcept {
         return (v_inter.first - m_player.getX()) *m_player.invcos(ray);
     }
 
-    bool isInClientRect(const WorldMap& map, const fpoint_t& point) const noexcept {
+    bool isInClientRect(const WorldMap& map, const Point2d& point) const noexcept {
         return point.first >= 0 && point.first <= map.getMaxX() &&
             point.second >= 0 && point.second <= map.getMaxY();
     }
 
-    cell_t horzWall(WorldMap& map, const fpoint_t& point, int ray) const noexcept;
-    cell_t vertWall(WorldMap& map, const fpoint_t& point, int ray) const noexcept;
+    Cell horzWall(WorldMap& map, const Point2d& point, int ray) const noexcept;
+    Cell vertWall(WorldMap& map, const Point2d& point, int ray) const noexcept;
 
-    cell_t horzIntWall(WorldMap& map, const fpoint_t& point, int ray) const noexcept;
-    cell_t vertIntWall(WorldMap& map, const fpoint_t& point, int ray) const noexcept;
+    Cell horzIntWall(WorldMap& map, const Point2d& point, int ray) const noexcept;
+    Cell vertIntWall(WorldMap& map, const Point2d& point, int ray) const noexcept;
 
     void shadingStretchBtl(
         HDC dest_hdc, int xDest, int yDest,
