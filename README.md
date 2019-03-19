@@ -4,11 +4,11 @@ It is not based on OpenGL or DirectX or other 3D library.
 Green field approach used for demostrate the ray-cast algorithm and related a published article on Computer Programming magazine by Infomedia.
 
 Screnn shot examples
-![Screen Shot](http://www.eantcal.eu/home/articles-and-publications/ray-casting-engine-3d-e-videogame/ScreenShot2.png)
+![Screen Shot](https://github.com/eantcal/Winraycast/blob/master/ScreenShots/ScreenShot2.png)
 
-![Screen Shot](http://www.eantcal.eu/home/articles-and-publications/ray-casting-engine-3d-e-videogame/ScreenShot3.png)
+![Screen Shot](https://github.com/eantcal/Winraycast/blob/master/ScreenShots/ScreenShot3.png)
 
-![Screen Shot](http://www.eantcal.eu/home/articles-and-publications/ray-casting-engine-3d-e-videogame/ScreenShot1.png)
+![Screen Shot](https://github.com/eantcal/Winraycast/blob/master/ScreenShots/ScreenShot1.png)
 
 More information at
-[Article on raycast](http://www.eantcal.eu/home/articles-and-publications/ray-casting-engine-3d-e-videogame)
+[Article on raycast](https://drive.google.com/file/d/1kJ579jaSHmN326CgkOOjtrbpTwqL_gpF/view)
