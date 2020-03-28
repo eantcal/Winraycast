@@ -41,8 +41,8 @@ static HRESULT InitInstance(HINSTANCE hInstance, int nCmdShow);
 #define KEYBSTEP  10
 #define KEYBALPHA  4
 
-#define X_RES 800
-#define Y_RES 600
+#define X_RES 1024
+#define Y_RES 768
 
 #define PROJ_X_RES 512
 #define PROJ_Y_RES 512
@@ -205,22 +205,9 @@ int APIENTRY WinMain(HINSTANCE hInstance,
     MSG msg;
     HACCEL hAccelTable;
 
-#if 0
-    g_FullScreenModeActive =
-        IDYES == MessageBox(0,
-            "Go to in full screen mode ?",
-            "Video Mode",
-            MB_ICONQUESTION | MB_YESNO);
-#endif
     if (InitInstance(hInstance, nCmdShow) != S_OK) {
         return FALSE;
     }
-
-    SetTimer(g_hWnd, WATER_EFFECT, 220, NULL);
-    SetTimer(g_hWnd, LIGHT_EFFECT, 120, NULL);
-    SetTimer(g_hWnd, FIRE_EFFECT, 100, NULL);
-    SetTimer(g_hWnd, FPS_INFO, 4000, NULL);
-
 
     g_hInstance = hInstance;
 
@@ -428,81 +415,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         }
         break;
 
-    case WM_TIMER: {
-        //if (!the3DEngine)
-            break;
-
-        switch (wParam) {
-        case FIRE_EFFECT: {
-            static int i = 0;
-            //fireplace
-            i = (rand() & 0x3) ^ (i & 1);
-            (*theWorldMap)[3][6] = i + 0xA1;
-            (*theWorldMap)[32][6] = ((i + 0xE0) << 24) | ((i + 0xE0) << 16) | ((0x1) << 8);
-        }
-        break;
-
-        case WATER_EFFECT: {
-            //water
-            static int j = 0;
-            j++;
-
-            int water_effect = ((j % 6 + 0xB1) << 16) & 0x00FF0000;
-
-            (*theWorldMap)[8][5] = water_effect | 0xee00FF00;
-            for (int x = 0; x < 4; ++x) {
-                for (int y = 0; y < 10; ++y) {
-                    (*theWorldMap)[1 + y][11 + x] = (x & y & 1) ? 0x00000101 : 0x0000FF00 | water_effect;
-                    (*theWorldMap)[33 + y][11 + x] = (x & y & 1) ? 0x00000505 : 0x0000FF00 | water_effect;
-                }
-            }
-
-            Cell floor_type = g_current_cell_of_player >> 16;
-            if (floor_type <= 0xB6 && floor_type >= 0xB1) {
-                the3DEngine->player().setCenterProj((double)0.90);
-            }
-            else {
-                the3DEngine->player().setCenterProj((double)0.50);
-            }
-
-            if (floor_type == 0x10) {
-                the3DEngine->player().setPos(make_pair<int, int>(CELL_SIZE * 2, CELL_SIZE * 2));
-            }
-        }
-        break;
-
-        case LIGHT_EFFECT: {
-            int y = the3DEngine->player().getRow(CELL_SIZE);
-            if (y > 31) {
-                the3DEngine->setDepthShadingLevel(50.0);
-            }
-            else {
-                the3DEngine->setDepthShadingLevel(150.0);
-            }
-
-            int toggle = rand() & 1;
-            if (toggle) {
-                (*theWorldMap)[17][1] = 0x00f1c200;
-                (*theWorldMap)[17][0] = 0x0000009c;
-                (*theWorldMap)[2][3] = 0x00f1c200;
-            }
-            else {
-                (*theWorldMap)[17][1] = 0x0000c100;
-                (*theWorldMap)[17][0] = 0x00000009;
-                (*theWorldMap)[2][3] = 0x0000c100;
-            }
-        }
-        break;
-
-        }
-    }
-    break;
-
     case WM_PAINT:
-    {
         videoHdc = BeginPaint(hWnd, &ps);
         EndPaint(hWnd, &ps);
-    }
     break;
 
     case WM_ACTIVATE:
@@ -556,23 +471,6 @@ LRESULT CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
     return FALSE;
 }
 
-
-/* -------------------------------------------------------------------------- */
-#if 0
-static void ReleaseAllObjects(void) 
-{
-    if (!g_pDD)
-        return;
-
-    if (g_pDDSPrimary) {
-        g_pDDSPrimary->Release();
-        g_pDDSPrimary = nullptr;
-    }
-
-    g_pDD->Release();
-    g_pDD = nullptr;
-}
-#endif
 
 /* -------------------------------------------------------------------------- */
 

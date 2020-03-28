@@ -98,7 +98,8 @@ Player::Player(
     m_invTanTbl.resize(vecSize);
 
     for (int ray = 0; ray < vecSize; ++ray) {
-        const double alpha = (double(ray*360.0) / double(m_deg360))*(3.14159265359 / 180.0);
+        const double alpha = 
+           (double(ray*360.0) / double(m_deg360))*(3.14159265359 / 180.0);
 
         m_cosTbl[ray] = ::cos(alpha);
         m_sinTbl[ray] = ::sin(alpha);
