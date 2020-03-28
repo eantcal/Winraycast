@@ -12,9 +12,9 @@
 
 #include <fstream>
 
-#include "mip_unicode.h"
-#include "mip_tknzr_bldr.h"
-#include "mip_esc_cnvrtr.h"
+#include "./miptknzr/include/mip_unicode.h"
+#include "./miptknzr/include/mip_tknzr_bldr.h"
+#include "./miptknzr/include/mip_esc_cnvrtr.h"
 
 #include <iostream>
 

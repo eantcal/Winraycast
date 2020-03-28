@@ -34,8 +34,8 @@ public:
         return 0;
     }
 
-    void fillBuffer(void* destBuf, int offset, int org_dx) {
-        for (int y = 0; y < m_dy; ++y) {
+    void fillBuffer(void* destBuf, long offset, long org_dx) {
+        for (long y = 0; y < m_dy; ++y) {
             for (int x = 0; x < m_dx; ++x) {
                 (*((DWORD*)destBuf + x + y * m_dx)) = 
                     getPixel((x + offset) % org_dx, y);
@@ -45,7 +45,7 @@ public:
 
 private:
     DWORD * _bitmap;
-    int m_dx, m_dy;
+    long m_dx, m_dy;
 };
 
 
