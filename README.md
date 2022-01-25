@@ -5,6 +5,8 @@ Green field approach used to demostrate the ray-cast algorithm and related to an
 
 ## Screenshots
 
+![Screen Shot](https://github.com/eantcal/Winraycast/blob/master/ScreenShots/ScreenshotCollage.png)
+
 ![Screen Shot](https://github.com/eantcal/Winraycast/blob/master/ScreenShots/ScreenShot2.png)
 
 ![Screen Shot](https://github.com/eantcal/Winraycast/blob/master/ScreenShots/ScreenShot3.png)
